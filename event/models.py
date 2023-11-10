@@ -1,9 +1,9 @@
 from django.db import models
-from uuid import uuid4
-from users.models import AdminPortalUser
 
-# Create your models here.
-class Event(models.Model):
+from CODE.models import CODEBaseModel
+
+
+class Event(CODEBaseModel):
 
     DEPARTMENT_CHOICES = (
         ('1', 'Computer Engineering'),
@@ -15,15 +15,14 @@ class Event(models.Model):
         ('7', 'First Year Engineering'),
         ('8', 'MBA')
     )
-        
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+
     name = models.TextField(blank=False, null=False)
     description = models.TextField(blank=False, null=False)
     date = models.DateField(blank=False, null=False)    
     time = models.TimeField(blank=False, null=False)
     venue = models.TextField(blank=False, null=False)
-    department = models.TextField(blank=False, null=False,choices=DEPARTMENT_CHOICES)
+    department = models.TextField(blank=False, null=False, choices=DEPARTMENT_CHOICES)
+    link = models.URLField(blank=True, null=True)
 
-    createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)
-
+    def __str__(self) -> str:
+        return f"{self.name} - {self.department}"

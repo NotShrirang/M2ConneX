@@ -1,9 +1,10 @@
 from django.db import models
-from uuid import uuid4
-from users.models import AdminPortalUser
-# Create your models here.
 
-class Donation(models.Model):
+from CODE.models import CODEBaseModel
+from users.models import AlumniPortalUser
+
+
+class Donation(CODEBaseModel):
     DEPARTMENT_CHOICES = (
         ('1', 'Computer Engineering'),
         ('2', 'Mechanical Engineering'),
@@ -15,12 +16,11 @@ class Donation(models.Model):
         ('8', 'MBA')
     )
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.TextField(blank=False, null=False)
-    amount = models.IntegerField(blank=False, null=False)
     description = models.TextField(blank=False, null=False)
-    user = models.ForeignKey(to= AdminPortalUser, on_delete=models.CASCADE, related_name='donations')
-    department = models.CharField(max_length=255, blank=False, null=False,choices=DEPARTMENT_CHOICES)
-    createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)
+    amount = models.IntegerField(blank=False, null=False)
+    user = models.ForeignKey(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='donations')
+    department = models.CharField(max_length=255, blank=False, null=False, choices=DEPARTMENT_CHOICES)
 
+    def __str__(self) -> str:
+        return f"{self.name} - {self.user}"

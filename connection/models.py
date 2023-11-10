@@ -1,10 +1,12 @@
 from django.db import models
-from uuid import uuid4
-from users.models import AdminPortalUser
 
-# Create your models here.
-class Connection(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    userA = models.ForeignKey(to= AdminPortalUser, on_delete=models.CASCADE, related_name='userA')
-    userB = models.ForeignKey(to= AdminPortalUser, on_delete=models.CASCADE, related_name='userB')
-    
+from CODE.models import CODEBaseModel
+from users.models import AlumniPortalUser
+
+
+class Connection(CODEBaseModel):
+    userA = models.ForeignKey(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='userA')
+    userB = models.ForeignKey(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='userB')
+
+    def __str__(self) -> str:
+        return f"{self.userA} <-> {self.userB}"
