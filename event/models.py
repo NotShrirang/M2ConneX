@@ -24,5 +24,10 @@ class Event(CODEBaseModel):
     department = models.TextField(blank=False, null=False, choices=DEPARTMENT_CHOICES)
     link = models.URLField(blank=True, null=True)
 
+    class Meta:
+        db_table = 'event'
+        verbose_name_plural = "event"
+        managed = True
+
     def __str__(self) -> str:
         return f"{self.name} - {self.department}"

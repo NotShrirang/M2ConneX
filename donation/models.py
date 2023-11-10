@@ -22,5 +22,10 @@ class Donation(CODEBaseModel):
     user = models.ForeignKey(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='donations')
     department = models.CharField(max_length=255, blank=False, null=False, choices=DEPARTMENT_CHOICES)
 
+    class Meta:
+        db_table = 'donation'
+        verbose_name_plural = "donation"
+        managed = True
+
     def __str__(self) -> str:
         return f"{self.name} - {self.user}"
