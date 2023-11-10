@@ -5,13 +5,15 @@ from phonenumber_field.modelfields import PhoneNumberField
 from uuid import uuid4
 from rest_framework_simplejwt.tokens import RefreshToken
 from csc.models import City
+from CODE.models import CODEBaseModel
 
 class AlumniPortalUserManager(BaseUserManager):
-    def create_user(self, email, password, identifier, **extra_fields):
+    def create_user(self, email, password, identifier=None, **extra_fields):
         if not email:
             raise ValueError("Users must have an email")
-        if not identifier:
-            raise ValueError("Users must have an identifier")
+        if not extra_fields['is_superuser']:
+            if not identifier:
+                raise ValueError("Users must have an identifier")
         
         user = self.model(
             email = self.normalize_email(email),
@@ -22,11 +24,11 @@ class AlumniPortalUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, identifier, **extra_fields):
+    def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_admin', True)
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(email, password, identifier, **extra_fields)
+        return self.create_user(email, password, **extra_fields)
 
 class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
 
@@ -49,15 +51,15 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    identifer = models.CharField(max_length=255, unique=True, blank=False, null=False)
+    identifier = models.CharField(max_length=255, unique=True, blank=True, null=True)
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
     firstName = models.CharField(max_length=255, blank=False, null=False)
     lastName = models.CharField(max_length=255, blank=False, null=False)
-    department = models.CharField(max_length=255, blank=False, null=False, choices=DEPARTMENT_CHOICES)
-    privilege = models.CharField(max_length=255, blank=False, null=False, choices=PRIVILEGE_CHOICES)
+    department = models.CharField(max_length=255, blank=True, null=True, choices=DEPARTMENT_CHOICES)
+    privilege = models.CharField(max_length=255, blank=True, null=True, choices=PRIVILEGE_CHOICES)
     resume = models.URLField(max_length=255, blank=True, null=True)
     profilePicture = models.URLField(max_length=255, blank=True, null=True)
-    city = models.ForeignKey(to=City, on_delete=models.CASCADE, related_name='users', blank=False, null=False)
+    city = models.ForeignKey(to=City, on_delete=models.CASCADE, related_name='users', blank=True, null=True)
     phoneNumber = PhoneNumberField(blank=True, null=True)
     
     createdAt = models.DateTimeField(auto_now_add=True)
@@ -70,7 +72,7 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
     
     objects = AlumniPortalUserManager()
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['identifer', 'firstName', 'lastName', 'department', 'privilege', 'city']
+    REQUIRED_FIELDS = ['firstName', 'lastName']
 
     def __str__(self):
         return self.email
@@ -84,3 +86,46 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
     
     class Meta:
         db_table = 'alumni_portal_user'
+
+class Alumni(CODEBaseModel):
+    user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='alumni')
+    batch = models.IntegerField(blank=False, null=False)
+    enrollmentYear = models.DateTimeField(blank=False, null=False)
+    passingOutYear = models.DateTimeField(blank=False, null=False)
+
+    def __str__(self):
+        return self.user.email
+    
+    class Meta:
+        db_table = 'alumni'
+
+class Student(CODEBaseModel):
+    user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='student')
+    batch = models.IntegerField(blank=False, null=False)
+    enrollmentYear = models.DateTimeField(blank=False, null=False)
+    passingOutYear = models.DateTimeField(blank=False, null=False)
+
+    def __str__(self):
+        return self.user.email
+    
+    class Meta:
+        db_table = 'student'
+
+class Faculty(CODEBaseModel):
+    user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='staff')
+    college = models.CharField(max_length=255, blank=False, null=False)
+
+    def __str__(self):
+        return self.user.email
+    
+    class Meta:
+        db_table = 'faculty'
+
+class SuperAdmin(CODEBaseModel):
+    user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='superAdmin')
+
+    def __str__(self):
+        return self.user.email
+    
+    class Meta:
+        db_table = 'super_admin'

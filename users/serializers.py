@@ -1,4 +1,10 @@
-from users.models import AlumniPortalUser
+from users.models import (
+    AlumniPortalUser,
+    Alumni,
+    Student,
+    Faculty,
+    SuperAdmin
+)
 from django.contrib import auth
 from rest_framework.serializers import ModelSerializer, CharField, SerializerMethodField, Serializer
 from rest_framework.exceptions import AuthenticationFailed
@@ -58,3 +64,23 @@ class LogoutSerializer(Serializer):
             RefreshToken(self.token).blacklist()
         except TokenError:
             self.fail('bad_token')
+
+class AlumniSerializer(ModelSerializer):
+    class Meta:
+        model = Alumni
+        fields = ['id', 'user', 'batch', 'enrollmentYear', 'passingOutYear']
+
+class StudentSerializer(ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['id', 'user', 'batch', 'enrollmentYear', 'passingOutYear']
+
+class FacultySerializer(ModelSerializer):
+    class Meta:
+        model = Faculty
+        fields = ['id', 'user', 'college']
+
+class SuperAdminSerializer(ModelSerializer):
+    class Meta:
+        model = SuperAdmin
+        fields = ['id', 'user']

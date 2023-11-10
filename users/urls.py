@@ -7,6 +7,10 @@ from users.views import (
     AlumniPortalUserRegisterView,
     AlumniPortalUserLoginView,
     AlumniPortalUserLogoutView,
+    AlumniViewSet,
+    StudentViewSet,
+    FacultyViewSet,
+    SuperAdminViewSet
 )
 from rest_framework_simplejwt.views import (
     TokenRefreshView
@@ -14,6 +18,11 @@ from rest_framework_simplejwt.views import (
 
 router = SimpleRouter()
 router.register(r'users', AlumniPortalUserViewSet, basename='users')
+router.register(r'students', StudentViewSet, basename='students')
+router.register(r'alumni', AlumniViewSet, basename='alumni')
+router.register(r'faculty', FacultyViewSet, basename='faculty')
+router.register(r'super-admin', SuperAdminViewSet, basename='super-admin')
+
 
 class HomeView(APIView):
     def get(self, request):
@@ -23,7 +32,12 @@ class HomeView(APIView):
                 '/login/',
                 '/register/',
                 '/logout/',
+                '/token/refresh/',
                 '/users/',
+                '/students/',
+                '/alumni/',
+                '/faculty/',
+                '/super-admin/'
             ]
         })
 
