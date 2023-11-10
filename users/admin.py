@@ -1,8 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from users.models import AlumniPortalUser
-
-admin.site.site_header = 'MMCOE Alumni Portal Users App Admin'
+from users.models import (
+    AlumniPortalUser,
+    Alumni,
+    Student,
+    Faculty,
+    SuperAdmin
+)
 
 class AlumniPortalUserAdmin(UserAdmin):
     model = AlumniPortalUser
@@ -43,3 +47,7 @@ class AlumniPortalUserAdmin(UserAdmin):
     )
 
 admin.site.register(AlumniPortalUser, AlumniPortalUserAdmin)
+admin.site.register(Alumni)
+admin.site.register(Student)
+admin.site.register(Faculty)
+admin.site.register(SuperAdmin)

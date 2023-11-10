@@ -24,7 +24,7 @@ class Donation(CODEBaseModel):
 
     class Meta:
         db_table = 'donation'
-        verbose_name_plural = "donation"
+        verbose_name_plural = "donations"
         managed = True
 
     def __str__(self) -> str:
