@@ -1,5 +1,6 @@
 from django.db import models
 from CODE.models import CODEBaseModel
+from users.models import AlumniPortalUser
 
 
 class Event(CODEBaseModel):
@@ -22,6 +23,7 @@ class Event(CODEBaseModel):
     venue = models.TextField(blank=False, null=False)
     department = models.TextField(blank=False, null=False, choices=DEPARTMENT_CHOICES)
     link = models.URLField(blank=True, null=True)
+    createdByUser = models.ForeignKey(AlumniPortalUser, on_delete=models.CASCADE, related_name='createdEvents')
 
     class Meta:
         db_table = 'event'

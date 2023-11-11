@@ -9,6 +9,9 @@ class DonationSerializer(ModelSerializer):
     class Meta:
         model = Donation
         fields = ['id', 'name', 'description', 'amount', 'department', 'userName', 'profilePicture']
+        list_fields = fields
+        get_fields = fields
+        read_only_fields = ['id', 'userName', 'profilePicture']
 
     def get_userName(self, instance):
         return instance.user.name

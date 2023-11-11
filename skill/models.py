@@ -4,9 +4,7 @@ from users.models import AlumniPortalUser
 
 
 class Skill(CODEBaseModel):
-
     name = models.CharField(max_length=100, null=False, blank=False)
-    # experience = models.CharField(max_length=100, null=False, blank=False, choices=EXPERIENCE_CHOICES)
 
     class Meta:
         ordering = ['-createdAt']
