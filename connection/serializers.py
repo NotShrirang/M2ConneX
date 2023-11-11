@@ -10,7 +10,7 @@ class ConnectionSerializer(ModelSerializer):
 
     class Meta:
         model = Connection
-        fields = ['id', 'userA', 'userB', 'createdAt', 'updatedAt', 'userADetails', 'userBDetails']
+        fields = ['id', 'userA', 'userB', 'status', 'createdAt', 'updatedAt', 'userADetails', 'userBDetails']
         list_fields = fields
         get_fields = fields
 
