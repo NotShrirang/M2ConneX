@@ -52,6 +52,11 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
         ('8', 'MBA')
     )
 
+    SIGN_IN_METHOD = (
+        ("google", "google"),
+        ("email", "email"),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     identifier = models.CharField(max_length=255, unique=True, blank=True, null=True)
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
@@ -63,10 +68,12 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
     profilePicture = models.URLField(max_length=255, blank=True, null=True)
     city = models.ForeignKey(to=City, on_delete=models.CASCADE, related_name='users', blank=True, null=True)
     phoneNumber = PhoneNumberField(blank=True, null=True)
+    signInMethod = models.CharField(max_length=255, blank=True, null=True, choices=SIGN_IN_METHOD)
 
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
+    isVerified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
