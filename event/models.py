@@ -25,9 +25,25 @@ class Event(CODEBaseModel):
 
     class Meta:
         db_table = 'event'
-        verbose_name_plural = "event"
+        verbose_name = "Event"
+        verbose_name_plural = "Events"
         ordering = ['-createdAt']
         managed = True
 
     def __str__(self) -> str:
         return f"{self.name} - {self.department}"
+
+
+class EventImage(CODEBaseModel):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='images')
+    image = models.URLField(blank=False, null=False)
+
+    class Meta:
+        db_table = 'event_image'
+        verbose_name = "Event Image"
+        verbose_name_plural = "Event Image"
+        ordering = ['-createdAt']
+        managed = True
+
+    def __str__(self) -> str:
+        return f"{self.event.name}'s images"
