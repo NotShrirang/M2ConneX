@@ -25,7 +25,8 @@ class Donation(CODEBaseModel):
     class Meta:
         db_table = 'donation'
         verbose_name_plural = "donations"
+        ordering = ['-createdAt']
         managed = True
 
     def __str__(self) -> str:
-        return f"{self.name} - {self.user}"
+        return f"{self.name} - {self.user.firstName} {self.user.lastName}"

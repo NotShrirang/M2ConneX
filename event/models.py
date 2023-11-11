@@ -26,6 +26,7 @@ class Event(CODEBaseModel):
     class Meta:
         db_table = 'event'
         verbose_name_plural = "event"
+        ordering = ['-createdAt']
         managed = True
 
     def __str__(self) -> str:

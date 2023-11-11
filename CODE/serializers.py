@@ -1,6 +1,7 @@
 from CODE.models import CODEBaseModel
 from rest_framework.serializers import ModelSerializer
 
+
 class CODEBaseModelSerializer(ModelSerializer):
     class Meta:
         model = CODEBaseModel

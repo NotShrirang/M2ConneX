@@ -1,21 +1,60 @@
-from csc.models import (
-    City, 
-    State,
-    Country,
-)
-from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
+from .models import Country, State, City
 
-class CitySerializer(ModelSerializer):
-    class Meta:
-        model = City
-        fields = '__all__'
 
-class StateSerializer(ModelSerializer):
-    class Meta:
-        model = State
-        fields = '__all__'
-
-class CountrySerializer(ModelSerializer):
+class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = '__all__'
+        fields = (
+            "id",
+            "createdAt",
+            "updatedAt",
+            "name",
+        )
+        get_fields = (
+            "id",
+            "createdAt",
+            "updatedAt",
+            "name",
+        )
+        list_fields = (
+            "id",
+            "createdAt",
+            "updatedAt",
+            "name",
+        )
+
+
+class StateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = State
+        fields = (
+            "id",
+            "createdAt",
+            "updatedAt",
+            "name",
+            "country",
+        )
+        list_fields = fields
+        get_fields = fields
+
+
+class CitySerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = City
+        fields = (
+            "id",
+            "createdAt",
+            "updatedAt",
+            "name",
+            "state",
+            "latitude",
+            "longitude",
+        )
+        list_fields = fields
+        get_fields = fields
+
+    def get_name(self, instance):
+        return instance.name + " | " + instance.state.name + " | " + instance.state.country.name

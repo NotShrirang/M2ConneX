@@ -7,6 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from csc.models import City
 from CODE.models import CODEBaseModel
 
+
 class AlumniPortalUserManager(BaseUserManager):
     def create_user(self, email, password, identifier=None, **extra_fields):
         if not email:
@@ -14,10 +15,10 @@ class AlumniPortalUserManager(BaseUserManager):
         if not extra_fields['is_superuser']:
             if not identifier:
                 raise ValueError("Users must have an identifier")
-        
+
         user = self.model(
-            email = self.normalize_email(email),
-            identifier = identifier,
+            email=self.normalize_email(email),
+            identifier=identifier,
             **extra_fields,
         )
         user.set_password(password)
@@ -29,6 +30,7 @@ class AlumniPortalUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
+
 
 class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
 
@@ -61,7 +63,7 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
     profilePicture = models.URLField(max_length=255, blank=True, null=True)
     city = models.ForeignKey(to=City, on_delete=models.CASCADE, related_name='users', blank=True, null=True)
     phoneNumber = PhoneNumberField(blank=True, null=True)
-    
+
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
@@ -69,23 +71,24 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    
+
     objects = AlumniPortalUserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['firstName', 'lastName']
 
     def __str__(self):
         return self.email
-    
+
     def tokens(self):
         refresh = RefreshToken.for_user(self)
-        return{
-            'refresh':str(refresh),
-            'access':str(refresh.access_token)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
         }
-    
+
     class Meta:
         db_table = 'alumni_portal_user'
+
 
 class Alumni(CODEBaseModel):
     user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='alumni')
@@ -95,9 +98,12 @@ class Alumni(CODEBaseModel):
 
     def __str__(self):
         return self.user.email
-    
+
     class Meta:
         db_table = 'alumni'
+        verbose_name = 'Alumni'
+        verbose_name_plural = 'Alumni'
+
 
 class Student(CODEBaseModel):
     user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='student')
@@ -107,9 +113,12 @@ class Student(CODEBaseModel):
 
     def __str__(self):
         return self.user.email
-    
+
     class Meta:
         db_table = 'student'
+        verbose_name = 'Student'
+        verbose_name_plural = 'Students'
+
 
 class Faculty(CODEBaseModel):
     user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='staff')
@@ -117,15 +126,20 @@ class Faculty(CODEBaseModel):
 
     def __str__(self):
         return self.user.email
-    
+
     class Meta:
         db_table = 'faculty'
+        verbose_name = 'Faculty'
+        verbose_name_plural = 'Faculty'
+
 
 class SuperAdmin(CODEBaseModel):
     user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='superAdmin')
 
     def __str__(self):
         return self.user.email
-    
+
     class Meta:
         db_table = 'super_admin'
+        verbose_name = 'Super Admin'
+        verbose_name_plural = 'Super Admins'

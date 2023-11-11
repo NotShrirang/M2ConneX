@@ -1,3 +1,13 @@
 from django.contrib import admin
+from .models import (
+    Feed,
+    FeedImage,
+    FeedAction,
+    FeedActionComment,
+)
 
-# Register your models here.
+
+admin.site.register(Feed)
+admin.site.register(FeedImage)
+admin.site.register(FeedAction)
+admin.site.register(FeedActionComment)
