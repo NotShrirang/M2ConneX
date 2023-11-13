@@ -20,6 +20,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '.ngrok-free.app', # For testing purposes
     'localhost',
+    '127.0.0.1',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     "csc",
     "donation",
     "event",
+    "experience",
     "feed",
     "opportunity",
     "skill",
