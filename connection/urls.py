@@ -1,5 +1,5 @@
 from connection.views import (
-    ConnectionViewSet,
+    ConnectionView,
     ConnectionRequestView,
     ConnectionRequestAcceptView,
 )
@@ -20,7 +20,7 @@ class HomeView(APIView):
         })
 
 router = SimpleRouter()
-router.register('connection', ConnectionViewSet)
+router.register('connection', ConnectionView, basename='connection')
 
 urlpatterns = [
     path('', HomeView.as_view()),

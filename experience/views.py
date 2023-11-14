@@ -7,7 +7,7 @@ from experience.serializers import ExperienceSerializer
 from users.models import AlumniPortalUser
 
 
-class ExperienceViewSet(ModelViewSet):
+class ExperienceView(ModelViewSet):
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
     permission_classes = [IsAuthenticated,]

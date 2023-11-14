@@ -1,7 +1,7 @@
 from csc.views import (
-    CityViewSet,
-    StateViewSet,
-    CountryViewSet
+    CityView,
+    StateView,
+    CountryView
 )
 from django.urls import path
 from rest_framework.routers import SimpleRouter
@@ -20,9 +20,9 @@ class HomeView(APIView):
         })
 
 router = SimpleRouter()
-router.register('city', CityViewSet)
-router.register('state', StateViewSet)
-router.register('country', CountryViewSet)
+router.register('city', CityView, basename='city')
+router.register('state', StateView, basename='state')
+router.register('country', CountryView, basename='country')
 
 urlpatterns = [
     path('', HomeView.as_view()),

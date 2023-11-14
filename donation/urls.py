@@ -1,4 +1,4 @@
-from donation.views import DonationViewSet
+from donation.views import DonationView
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 from rest_framework.views import APIView
@@ -16,7 +16,7 @@ class HomeView(APIView):
 
 
 router = SimpleRouter()
-router.register('donation', DonationViewSet)
+router.register('donation', DonationView, basename='donation')
 
 urlpatterns = [
     path('', HomeView.as_view()),

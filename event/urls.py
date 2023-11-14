@@ -1,4 +1,4 @@
-from event.views import EventViewSet
+from event.views import EventView, EventImageView
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 from rest_framework.views import APIView
@@ -14,7 +14,8 @@ class HomeView(APIView):
         })
 
 router = SimpleRouter()
-router.register('event', EventViewSet)
+router.register('event', EventView, basename='event')
+router.register('event-image', EventImageView, basename='event-image')
 
 urlpatterns = [
     path('', HomeView.as_view()),

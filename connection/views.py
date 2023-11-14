@@ -8,7 +8,7 @@ from connection.serializers import ConnectionSerializer
 from users.models import AlumniPortalUser
 
 
-class ConnectionViewSet(ModelViewSet):
+class ConnectionView(ModelViewSet):
     serializer_class = ConnectionSerializer
     queryset = Connection.objects.all()
 

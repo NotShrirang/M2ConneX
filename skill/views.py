@@ -12,7 +12,7 @@ from rest_framework import status
 from skill.serializers import UserSkillSerializer
 from rest_framework.permissions import IsAuthenticated
 
-class SkillViewSet(ModelViewSet):
+class SkillView(ModelViewSet):
     serializer_class = SkillSerializer
     queryset = Skill.objects.all()
     permission_classes = [IsAuthenticated,]
@@ -84,7 +84,7 @@ class SkillViewSet(ModelViewSet):
         else:
             return Response({"error": "You are not authorized to view skills"}, status=status.HTTP_401_UNAUTHORIZED)
     
-class UserSkillViewSet(ModelViewSet):
+class UserSkillView(ModelViewSet):
     serializer_class = UserSkillSerializer
     queryset = UserSkill.objects.all()
     

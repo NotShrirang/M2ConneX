@@ -1,6 +1,6 @@
 from skill.views import (
-    SkillViewSet,
-    UserSkillViewSet
+    SkillView,
+    UserSkillView
 )
 from django.urls import path
 from rest_framework.routers import SimpleRouter
@@ -18,8 +18,8 @@ class HomeView(APIView):
         })
 
 router = SimpleRouter()
-router.register('skill', SkillViewSet)
-router.register('userskill', UserSkillViewSet)
+router.register('skill', SkillView, basename='skill')
+router.register('user-skill', UserSkillView, basename='user-skill')
 
 urlpatterns = [
     path('', HomeView.as_view()),

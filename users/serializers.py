@@ -15,7 +15,7 @@ import requests
 class AlumniPortalUserSerializer(ModelSerializer):
     class Meta:
         model = AlumniPortalUser
-        fields = ['id', 'email', 'firstName', 'lastName', 'department', 'privilege', 'resume', 'profilePicture', 'city', 'phoneNumber', 'createdAt', 'updatedAt', 'is_active', 'is_admin', 'is_staff', 'is_superuser']
+        fields = ['id', 'email', 'firstName', 'lastName', 'department', 'privilege', 'bio', 'resume', 'profilePicture', 'city', 'phoneNumber', 'createdAt', 'updatedAt', 'isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser']
 
 class RegisterSerializer(ModelSerializer):
     password = CharField(min_length=8, write_only=True)
