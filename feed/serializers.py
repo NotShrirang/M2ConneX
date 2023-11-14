@@ -5,18 +5,30 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 class FeedSerializer(ModelSerializer):
     userName = SerializerMethodField()
     profilePicture = SerializerMethodField()
+    likesCount = SerializerMethodField()
+    commentsCount = SerializerMethodField()
+    sharesCount = SerializerMethodField()
 
     class Meta:
         model = Feed
-        fields = ['id', 'subject', 'body', 'user', 'createdAt', 'updatedAt', 'userName', 'profilePicture']
-        list_fields = ['id', 'subject', 'body', 'user', 'createdAt', 'updatedAt', 'userName', 'profilePicture']
-        get_fields = ['id', 'subject', 'body', 'user', 'createdAt', 'updatedAt', 'userName', 'profilePicture']
+        fields = ['id', 'subject', 'body', 'user', 'createdAt', 'updatedAt', 'userName', 'profilePicture', 'likesCount', 'commentsCount', 'sharesCount']
+        list_fields = fields
+        get_fields = fields
 
     def get_userName(self, obj):
         return (obj.user.firstName or "") + " " + (obj.user.lastName or "")
 
     def get_profilePicture(self, obj):
         return obj.user.profilePicture or ""
+    
+    def get_likesCount(self, obj):
+        return obj.actions.filter(action='LIKE').count()
+    
+    def get_commentsCount(self, obj):
+        return obj.actions.filter(action='COMMENT').count()
+    
+    def get_sharesCount(self, obj):
+        return obj.actions.filter(action='SHARE').count()
 
 
 class FeedImageSerializer(ModelSerializer):
@@ -56,15 +68,15 @@ class FeedActionCommentSerializer(ModelSerializer):
 
     class Meta:
         model = FeedActionComment
-        fields = ['id', 'feed_action', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
-        list_fields = ['id', 'feed_action', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
-        get_fields = ['id', 'feed_action', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
+        fields = ['id', 'feedAction', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
+        list_fields = ['id', 'feedAction', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
+        get_fields = ['id', 'feedAction', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
 
     def get_feedName(self, obj):
-        return obj.feed_action.feed.subject
+        return obj.feedAction.feed.subject
 
     def get_userName(self, obj):
-        return (obj.feed_action.user.firstName or "") + " " + (obj.feed_action.user.lastName or "")
+        return (obj.feedAction.user.firstName or "") + " " + (obj.feedAction.user.lastName or "")
 
     def get_profilePicture(self, obj):
-        return obj.feed_action.user.profilePicture or ""
+        return obj.feedAction.user.profilePicture or ""
