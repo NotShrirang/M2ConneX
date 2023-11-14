@@ -2,6 +2,7 @@ import boto3
 import os
 from dotenv import load_dotenv
 from typing import Union
+import uuid
 load_dotenv()
 
 def upload_object(folder_path: str, remote_path: str) -> str:
@@ -139,3 +140,27 @@ def get_object_url(remote_path: str) -> str:
         return s3.generate_presigned_url('get_object', Params = {'Bucket': os.getenv("BUCKET_NAME"), 'Key': remote_path}, ExpiresIn = 3600)
     except Exception as e:
         return str(e)
+    
+def upload_image(file, folder=None):
+    image_id = str(uuid.uuid4())
+    file_bytes = file.open()
+    if folder is not None and folder != "":
+        aws_path = os.path.join("images", folder, f"{image_id}.jpg")
+    else:
+        aws_path = os.path.join("images", f"{image_id}.jpg")
+    try:
+        s3 = boto3.client(
+            's3', 
+            region_name=os.getenv("BUCKET_REGION"), 
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"), 
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+        )
+        s3.upload_fileobj(
+            file_bytes,
+            Params = {'Bucket': os.getenv("BUCKET_NAME"), 'Key': aws_path},
+            ExtraArgs={'ACL': 'public-read'})
+        url = f"{os.getenv('AWS_URL')}/{aws_path}"
+        return url
+    except Exception as e:
+        print("ERROR while uploading image: ", e, flush=True)
+        return None
