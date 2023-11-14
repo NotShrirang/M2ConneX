@@ -1,7 +1,9 @@
 from opportunity.models import (
     Opportunity,
-    OpportunitySkill
+    OpportunitySkill,
+    OpportunityApplication
 )
+from users.serializers import AlumniSerializer
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 
@@ -41,3 +43,36 @@ class OpportunitySkillSerializer(ModelSerializer):
 
     def get_opportunityName(self, instance):
         return instance.opportunity.name
+    
+
+class OpportunityApplicationSerializer(ModelSerializer):
+    applicantDetails = SerializerMethodField()
+    opportunityDetails = SerializerMethodField()
+
+    class Meta:
+        model = OpportunityApplication
+        fields = ['id', 'opportunity', 'applicant', 'about', 'createdAt', 'updatedAt', 'applicantDetails', 'opportunityDetails']
+        list_fields = fields
+        get_fields = fields
+
+    def get_applicantDetails(self, instance):
+        data = {
+            'name': instance.applicant.firstName + " " + instance.applicant.lastName,
+            'email': instance.applicant.email,
+            'resume': instance.applicant.resume,
+            'phone': instance.applicant.phoneNumber,
+            'location': instance.applicant.city,
+            'profilePicture': instance.applicant.profilePicture
+        }
+        return data
+
+    def get_opportunityDetails(self, instance):
+        data = {
+            'name': instance.opportunity.name,
+            'description': instance.opportunity.description,
+            'type': instance.opportunity.type,
+            'companyName': instance.opportunity.companyName,
+            'location': instance.opportunity.location,
+            'locationType': instance.opportunity.locationType
+        }
+        return data

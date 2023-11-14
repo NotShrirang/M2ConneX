@@ -1,6 +1,6 @@
 from opportunity.views import (
-    OpportunityViewSet,
-    OpportunitySkillViewSet
+    OpportunityView,
+    OpportunitySkillView
 )
 from django.urls import path
 from rest_framework.routers import SimpleRouter
@@ -13,13 +13,13 @@ class HomeView(APIView):
             'message': 'Welcome to MMCOE Alumni Portal Opportunity API',
             'endpoints': [
                 '/opportunity/',
-                '/opportunityskill/',
+                '/opportunity-skill/',
             ]
         })
 
 router = SimpleRouter()
-router.register('opportunity', OpportunityViewSet)
-router.register('opportunityskill', OpportunitySkillViewSet)
+router.register('opportunity', OpportunityView, basename='opportunity')
+router.register('opportunity-skill', OpportunitySkillView, basename='opportunity-skill')
 
 urlpatterns = [
     path('', HomeView.as_view()),
