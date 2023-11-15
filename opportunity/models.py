@@ -55,9 +55,17 @@ class OpportunitySkill(CODEBaseModel):
 
 
 class OpportunityApplication(CODEBaseModel):
+
+    STATUS_CHOICES = (
+        ('PENDING', 'PENDING'),
+        ('ACCEPTED', 'ACCEPTED'),
+        ('REJECTED', 'REJECTED'),
+    )
+
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name='applications')
     applicant = models.ForeignKey(Alumni, on_delete=models.CASCADE, related_name='opportunity_applications')
     about = models.TextField(null=False, blank=False)
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, null=False, blank=False, default='PENDING')
     
     class Meta:
         ordering = ['-createdAt']
