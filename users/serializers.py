@@ -64,7 +64,7 @@ class RegisterGoogleSerializer(ModelSerializer):
     
 class LoginSerializer(ModelSerializer):
     password = CharField(min_length=6, write_only=True)
-    username = CharField(max_length=255, min_length=3)
+    email = CharField(max_length=255)
     tokens = SerializerMethodField()
 
     def get_tokens(self, obj):

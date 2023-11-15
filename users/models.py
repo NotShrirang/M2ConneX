@@ -12,9 +12,6 @@ class AlumniPortalUserManager(BaseUserManager):
     def create_user(self, email, password, identifier=None, **extra_fields):
         if not email:
             raise ValueError("Users must have an email")
-        if not extra_fields['is_superuser']:
-            if not identifier:
-                raise ValueError("Users must have an identifier")
 
         user = self.model(
             email=self.normalize_email(email),
