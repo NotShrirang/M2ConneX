@@ -37,4 +37,4 @@ class UserSkill(CODEBaseModel):
         verbose_name_plural = "User Skills"
 
     def __str__(self):
-        return self.user.firstName + " " + self.user.lastName + ' - ' + str(self.skill.name)
+        return self.user.email + ' - ' + str(self.skill.name)
