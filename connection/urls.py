@@ -1,4 +1,8 @@
-from connection.views import ConnectionViewSet
+from connection.views import (
+    ConnectionView,
+    ConnectionRequestView,
+    ConnectionRequestAcceptView,
+)
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 from rest_framework.views import APIView
@@ -10,12 +14,16 @@ class HomeView(APIView):
             'message': 'Welcome to MMCOE Alumni Portal Connection API',
             'endpoints': [
                 '/connection/',
+                '/connection-request/',
+                '/connection-request-accept/',
             ]
         })
 
 router = SimpleRouter()
-router.register('connection', ConnectionViewSet)
+router.register('connection', ConnectionView, basename='connection')
 
 urlpatterns = [
     path('', HomeView.as_view()),
+    path('connection-request/', ConnectionRequestView.as_view()),
+    path('connection-request-accept/', ConnectionRequestAcceptView.as_view()),
 ] + router.urls

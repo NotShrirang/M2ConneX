@@ -52,3 +52,18 @@ class OpportunitySkill(CODEBaseModel):
 
     def __str__(self):
         return self.opportunity.name + ' - ' + self.skill.name
+
+
+class OpportunityApplication(CODEBaseModel):
+    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name='applications')
+    applicant = models.ForeignKey(Alumni, on_delete=models.CASCADE, related_name='opportunity_applications')
+    about = models.TextField(null=False, blank=False)
+    
+    class Meta:
+        ordering = ['-createdAt']
+        db_table = 'opportunity_application'
+        verbose_name = "Opportunity Application"
+        verbose_name_plural = "Opportunity Applications"
+
+    def __str__(self):
+        return self.opportunity.name + ' - ' + self.applicant.user.email

@@ -12,7 +12,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 
-class CityViewSet(ModelViewSet):
+class CityView(ModelViewSet):
     serializer_class = CitySerializer
     queryset = City.objects.all()
     
@@ -35,7 +35,7 @@ class CityViewSet(ModelViewSet):
         return Response({"error": "You are not authorized to create a city"}, status=status.HTTP_401_UNAUTHORIZED)
 
     
-class StateViewSet(ModelViewSet):
+class StateView(ModelViewSet):
     serializer_class = StateSerializer
     queryset = State.objects.all()
     
@@ -57,7 +57,7 @@ class StateViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
     
-class CountryViewSet(ModelViewSet):
+class CountryView(ModelViewSet):
     serializer_class = CountrySerializer
     queryset = Country.objects.all()
     

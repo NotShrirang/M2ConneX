@@ -57,7 +57,7 @@ class FeedAction(CODEBaseModel):
 
 
 class FeedActionComment(CODEBaseModel):
-    feed_action = models.ForeignKey(FeedAction, on_delete=models.CASCADE, related_name='comments')
+    feedAction = models.ForeignKey(FeedAction, on_delete=models.CASCADE, related_name='comments')
     comment = models.TextField(null=False, blank=False)
 
     class Meta:

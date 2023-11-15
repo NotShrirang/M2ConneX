@@ -51,7 +51,7 @@ class AlumniPortalUserLogoutView(generics.GenericAPIView):
         serializer.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class AlumniPortalUserViewSet(ModelViewSet):
+class AlumniPortalUserView(ModelViewSet):
     queryset = AlumniPortalUser.objects.all()
     serializer_class = AlumniPortalUserSerializer
 
@@ -70,7 +70,7 @@ class AlumniPortalUserViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
     
-class AlumniViewSet(ModelViewSet):
+class AlumniView(ModelViewSet):
     queryset = Alumni.objects.all()
     serializer_class = AlumniSerializer
 
@@ -89,7 +89,7 @@ class AlumniViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
     
-class StudentViewSet(ModelViewSet):
+class StudentView(ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
 
@@ -108,7 +108,7 @@ class StudentViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
     
-class FacultyViewSet(ModelViewSet):
+class FacultyView(ModelViewSet):
     queryset = Faculty.objects.all()
     serializer_class = FacultySerializer
 
@@ -127,7 +127,7 @@ class FacultyViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
     
-class SuperAdminViewSet(ModelViewSet):
+class SuperAdminView(ModelViewSet):
     queryset = SuperAdmin.objects.all()
     serializer_class = SuperAdminSerializer
 

@@ -1,12 +1,12 @@
-from event.models import Event
-from event.serializers import EventSerializer
+from event.models import Event, EventImage
+from event.serializers import EventSerializer, EventImageSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
 
-class EventViewSet(ModelViewSet):
+class EventView(ModelViewSet):
     serializer_class = EventSerializer
     queryset = Event.objects.all()
     permission_classes = [IsAuthenticated,]
@@ -86,3 +86,9 @@ class EventViewSet(ModelViewSet):
                 return Response({"error": "You are not authorized to destroy an event"}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({"error": "Your account is not active. Please contact admin"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class EventImageView(ModelViewSet):
+    serializer_class = EventImageSerializer
+    queryset = EventImage.objects.all()
+    permission_classes = [IsAuthenticated,]
