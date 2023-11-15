@@ -14,7 +14,7 @@ class OpportunitySerializer(ModelSerializer):
 
     class Meta:
         model = Opportunity
-        fields = ['id', 'name', 'description', 'alumni', 'type', 'companyName', 'startDate', 'endDate', 'location', 'locationType', 'requiredSkills', 'createdAt', 'updatedAt']
+        fields = ['id', 'name', 'description', 'alumni', 'type', 'companyName', 'startDate', 'endDate', 'location', 'locationType', 'requiredSkills', 'createdAt', 'updatedAt', 'alumniName', 'profilePicture']
         list_fields = fields
         get_fields = fields
 
@@ -34,7 +34,7 @@ class OpportunitySkillSerializer(ModelSerializer):
 
     class Meta:
         model = OpportunitySkill
-        fields = ['id', 'opportunity', 'skill', 'createdAt', 'updatedAt']
+        fields = ['id', 'opportunity', 'skill', 'createdAt', 'updatedAt', 'skillName', 'opportunityName']
         list_fields = fields
         get_fields = fields
 
@@ -51,7 +51,7 @@ class OpportunityApplicationSerializer(ModelSerializer):
 
     class Meta:
         model = OpportunityApplication
-        fields = ['id', 'opportunity', 'applicant', 'about', 'createdAt', 'updatedAt', 'applicantDetails', 'opportunityDetails']
+        fields = ['id', 'opportunity', 'applicant', 'about', 'status', 'createdAt', 'updatedAt', 'applicantDetails', 'opportunityDetails']
         list_fields = fields
         get_fields = fields
 
