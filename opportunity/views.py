@@ -8,8 +8,17 @@ from opportunity.serializers import (
     OpportunitySkillSerializer,
     OpportunityApplicationSerializer
 )
+from opportunity.filters import (
+    OpportunityFilter,
+    OpportunityApplicationFilter,
+    OpportunitySkillFilter
+)
+from users.models import Alumni
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -19,14 +28,26 @@ from rest_framework.permissions import IsAuthenticated
 
 class OpportunityView(ModelViewSet):
     serializer_class = OpportunitySerializer
-    queryset = Opportunity.objects.all()
     permission_classes = [IsAuthenticated]
-    search_fields = ['name', 'description', 'alumni__user__firstName', 'alumni__user__lastName', 'type', 'companyName', 'location', 'locationType', 'skills__skill__name']
+    queryset = Opportunity.objects.all()
+    filterset_class = OpportunityFilter
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = [
+        'name',
+        'description',
+        'alumni__user__firstName',
+        'alumni__user__lastName',
+        'type',
+        'companyName',
+        'location',
+        'locationType',
+        'skills__skill__name'
+    ]
 
     def list(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            qs = Opportunity.objects.filter(isActive=True)
+            qs = self.filter_queryset(self.queryset.filter(isActive=True))
             serializer = OpportunitySerializer(qs, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
@@ -48,7 +69,18 @@ class OpportunityView(ModelViewSet):
         user = request.user
         if user.is_active:
             if user.privilege == '3':
-                super().create(request, *args, **kwargs)
+                data = request.data
+                alumni = Alumni.objects.filter(user=user.id)
+                if alumni.exists():
+                    data['alumni'] = alumni.first().id
+                else:
+                    return Response({'error': 'Alumni not found'}, status=status.HTTP_404_NOT_FOUND)
+                serializer = OpportunitySerializer(data=data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'error': 'You are not authorized to create opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
@@ -103,12 +135,14 @@ class OpportunitySkillView(ModelViewSet):
     serializer_class = OpportunitySkillSerializer
     queryset = OpportunitySkill.objects.all()
     permission_classes = [IsAuthenticated]
+    filterset_class = OpportunitySkillFilter
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['opportunity__name', 'skill__name']
 
     def list(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            qs = OpportunitySkill.objects.filter(isActive=True)
+            qs = self.filter_queryset(self.queryset.filter(isActive=True))
             serializer = OpportunitySkillSerializer(qs, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
@@ -190,12 +224,14 @@ class OpportunityApplicationView(ModelViewSet):
     serializer_class = OpportunityApplicationSerializer
     queryset = OpportunityApplication.objects.all()
     permission_classes = [IsAuthenticated]
+    filterset_class = OpportunityApplicationFilter
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['opportunity__name', 'applicant__user__firstName', 'applicant__user__lastName', 'status']
 
     def list(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            application = OpportunityApplication.objects.filter(isActive=True)
+            application = self.filter_queryset(self.queryset.filter(isActive=True))
             application = application.filter(Q(opportunity__alumni=user) | Q(applicant=user))
             if application.exists():
                     return Response(OpportunityApplicationSerializer(application).data, status=status.HTTP_200_OK)
@@ -306,20 +342,34 @@ class RejectOpportunityApplication(APIView):
             return Response({'error': 'You are not authorized to reject opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class RecommendOpportunityView(APIView):
-    def get(self, request, *args, **kwargs):
+class RecommendOpportunityView(generics.ListAPIView):
+    serializer_class = OpportunitySerializer
+    queryset = Opportunity.objects.all()
+    filterset_class = OpportunityFilter
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['name', 'description', 'companyName', 'location', 'locationType', 'skills__skill__name']
+
+    def list(self, request, *args, **kwargs):
         user = request.user
+        search_query = request.GET.get('search', '')
         if user.is_active:
-            qs = Opportunity.objects.filter(isActive=True)
+            qs = self.filter_queryset(self.queryset).filter(isActive=True)
+            qs = qs.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query) | Q(companyName__icontains=search_query))
             final_qs = []
             for opportunity in qs:
                 user_skills: QuerySet = user.skills.all()
+                if user_skills.count() == 0:
+                    serializer = OpportunitySerializer(self.queryset.all(), many=True)
+                    return Response({'error': 'You have not added any skills', 'data': serializer.data}, status=status.HTTP_400_BAD_REQUEST)
                 opportunity_skills = opportunity.skills
                 intersected_skills = opportunity_skills.filter(skill__name__in=user_skills.values_list('skill__name', flat=True))
-                ratio = intersected_skills.count() / opportunity_skills.count()
                 serializer = OpportunitySerializer(opportunity)
                 data = serializer.data
-                data['matchRatio'] = ratio
+                if opportunity_skills.count() > 0:
+                    ratio = intersected_skills.count() / opportunity_skills.count()
+                    data['matchRatio'] = ratio
+                else:
+                    data['matchRatio'] = 0
                 data['matchedSkills'] = intersected_skills.values_list('skill__name', flat=True)
                 if intersected_skills.count() > 0:
                     final_qs.append(data)
