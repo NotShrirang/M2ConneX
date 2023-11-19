@@ -41,7 +41,7 @@ class FeedActionCommentFilter(CODEDateFilter):
     class Meta:
         model = FeedActionComment
         fields = {
-            'feed': ['exact'],
-            'commnent': ['exact', 'icontains'],
-            'user': ['exact'],
+            'feedAction__feed': ['exact'],
+            'comment': ['exact', 'icontains'],
+            'feedAction__user': ['exact'],
         }

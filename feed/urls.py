@@ -2,7 +2,8 @@ from feed.views import (
     FeedView,
     FeedActionView,
     FeedImageView,
-    FeedActionCommentView
+    FeedActionCommentView,
+    RecommendFeedView
 )
 from django.urls import path
 from rest_framework.routers import SimpleRouter
@@ -16,6 +17,7 @@ class HomeView(APIView):
             'message': 'Welcome to MMCOE Alumni Portal Feed API',
             'endpoints': [
                 '/feed/',
+                '/feed/recommend-feed/',
                 '/feed-action/',
                 '/feed-image/',
                 '/feed-action-comment/',
@@ -31,4 +33,5 @@ router.register('feed-action-comment', FeedActionCommentView, basename='feed-act
 
 urlpatterns = [
     path('', HomeView.as_view()),
+    path('recommend-feed/', RecommendFeedView.as_view()),
 ] + router.urls

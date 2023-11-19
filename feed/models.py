@@ -8,6 +8,7 @@ class Feed(CODEBaseModel):
     subject = models.CharField(verbose_name=_('Subject'), max_length=100, null=False, blank=False)
     body = models.TextField(verbose_name=_('Body'), null=False, blank=False)  # TODO: Add Rich Text Field
     user = models.ForeignKey(AlumniPortalUser, verbose_name=_('User'), on_delete=models.CASCADE, related_name='feed')
+    isPublic = models.BooleanField(verbose_name=_('Is Public'), default=True)
 
     class Meta:
         ordering = ['-createdAt']

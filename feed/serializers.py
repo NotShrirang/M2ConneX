@@ -11,7 +11,7 @@ class FeedSerializer(ModelSerializer):
 
     class Meta:
         model = Feed
-        fields = ['id', 'subject', 'body', 'user', 'createdAt', 'updatedAt', 'userName', 'profilePicture', 'likesCount', 'commentsCount', 'sharesCount']
+        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'profilePicture', 'likesCount', 'commentsCount', 'sharesCount']
         list_fields = fields
         get_fields = fields
 
