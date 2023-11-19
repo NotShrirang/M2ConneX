@@ -37,23 +37,22 @@ class ConnectionSerializer(ModelSerializer):
         }
 
     def validate(self, attrs):
-        userA = AlumniPortalUser.objects.filter(id=attrs.get('userA'))
+        userA = AlumniPortalUser.objects.filter(id=attrs.get('userA').id)
         if not userA.exists():
             raise ValidationError("User A does not exist")
-        userB = AlumniPortalUser.objects.filter(id=attrs.get('userB'))
+        userB = AlumniPortalUser.objects.filter(id=attrs.get('userB').id)
         if not userB.exists():
             raise ValidationError("User B does not exist")
         if userA == userB:
             raise ValidationError("User A and User B cannot be same")
-        if Connection.objects.filter(userA=userA, userB=userB).exists():
+        if Connection.objects.filter(userA=userA.first(), userB=userB.first()).exists():
             raise ValidationError("Connection already exists")
-        if Connection.objects.filter(userA=userB, userB=userA).exists():
+        if Connection.objects.filter(userA=userB.first(), userB=userA.first()).exists():
             raise ValidationError("Connection already exists")
         try:
             status = attrs.get('status')
         except Exception as e:
-            print(e)
-            return attrs
+            attrs['status'] = 'pending'
         if status not in ['pending', 'accepted']:
             raise ValidationError("Invalid status")
         return super().validate(attrs)
@@ -67,13 +66,3 @@ class ConnectionSerializer(ModelSerializer):
         if status == 'accepted':
             validated_data['status'] = 'pending'
         return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        try:
-            status = validated_data.get('status')
-        except Exception as e:
-            print(e)
-            return 
-        if status == 'accepted':
-            validated_data['status'] = 'pending'
-        return super().update(instance, validated_data)

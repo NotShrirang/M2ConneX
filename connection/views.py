@@ -149,7 +149,7 @@ class ConnectionRequestView(APIView):
             return Response({"detail": "User is not active"}, status=400)
         elif not current_user.isVerified:
             return Response({"detail": "User is not verified"}, status=400)
-        qs = AlumniPortalUser.objects.filter(id=request.data.get('userB'))
+        qs = AlumniPortalUser.objects.filter(id=request.data.get('userB', None))
         if qs.exists():
             userB = qs.first()
             if userB.is_active is False:
@@ -157,7 +157,7 @@ class ConnectionRequestView(APIView):
             elif userB.isVerified is False:
                 return Response({"detail": "User B is not verified"}, status=400)
             else:
-                connection_qs = Connection.objects.filter(userA=current_user, userB=userB, status="pending")
+                connection_qs = Connection.objects.filter(userA=current_user.id, userB=userB.id, status="pending")
                 if connection_qs.exists():
                     return Response({"detail": "Connection request already sent"}, status=400)
                 else:
@@ -170,7 +170,7 @@ class ConnectionRequestView(APIView):
                     if serializer.is_valid():
                         serializer.save()
                         # TODO: Add notifications.
-                        return Response(serializer.data)
+                        return Response(serializer.data, status=200)
                     else:
                         return Response(serializer.errors, status=400)
         else:
