@@ -16,6 +16,7 @@ class AlumniPortalUserAdmin(UserAdmin):
         'lastName',
         'department',
         'privilege',
+        'isVerified',
         'is_active',
         'is_admin',
         'is_staff',
@@ -24,6 +25,7 @@ class AlumniPortalUserAdmin(UserAdmin):
     list_filter = (
         'department',
         'privilege',
+        'isVerified',
         'is_active',
         'is_admin',
         'is_staff',
@@ -33,10 +35,12 @@ class AlumniPortalUserAdmin(UserAdmin):
     ordering = ('email',)
 
     fieldsets = (
-        (None, {'fields': ('email', 'firstName', 'lastName', 'password')}),
+        (None, {'fields': ('email', 'firstName', 'lastName', 'password', 'signInMethod')}),
         ('Department Info', {'fields': ('department',)}),
+        ('Profile Info', {'fields': ('bio', 'resume', 'profilePicture',)}),
+        ('Address Info', {'fields': ('city',)}),
         ('Privilege Info', {'fields': ('privilege',)}),
-        ('Permissions', {'fields': ('is_active', 'is_admin', 'is_staff', 'is_superuser')}),
+        ('Permissions', {'fields': ('isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser')}),
     )
 
     add_fieldsets = (
