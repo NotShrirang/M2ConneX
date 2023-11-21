@@ -14,7 +14,25 @@ class OpportunitySerializer(ModelSerializer):
 
     class Meta:
         model = Opportunity
-        fields = ['id', 'name', 'description', 'alumni', 'type', 'companyName', 'startDate', 'endDate', 'location', 'locationType', 'requiredSkills', 'createdAt', 'updatedAt', 'alumniName', 'profilePicture']
+        fields = [
+            'id',
+            'name', 
+            'description',
+            'payPerMonth',
+            'isPaid',
+            'alumni',
+            'type',
+            'companyName',
+            'startDate',
+            'endDate',
+            'location',
+            'workMode',
+            'requiredSkills',
+            'createdAt',
+            'updatedAt',
+            'alumniName',
+            'profilePicture'
+        ]
         list_fields = fields
         get_fields = fields
 

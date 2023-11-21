@@ -40,7 +40,8 @@ class OpportunityView(ModelViewSet):
         'type',
         'companyName',
         'location',
-        'locationType',
+        'workMode',
+        'isPaid',
         'skills__skill__name'
     ]
 

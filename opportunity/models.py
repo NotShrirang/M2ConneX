@@ -14,7 +14,7 @@ class Opportunity(CODEBaseModel):
         ('Other', 'Other'),
     )
 
-    LOCATION_TYPE_CHOICES = (
+    WORK_MODE_CHOICES = (
         ('Remote', 'Remote'),
         ('In Office', 'In Office'),
         ('Hybrid', 'Hybrid'),
@@ -22,13 +22,15 @@ class Opportunity(CODEBaseModel):
 
     name = models.CharField(max_length=100, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
+    payPerMonth = models.IntegerField(null=True, blank=True)
+    isPaid = models.BooleanField(null=False, blank=False, default=True)
     alumni = models.ForeignKey(Alumni, on_delete=models.CASCADE, related_name='opportunities')
     type = models.CharField(max_length=100, null=False, blank=False, choices=OPPORTUNITY_CHOICES)
     companyName = models.CharField(max_length=100, null=False, blank=False)
-    startDate = models.DateField(null=False, blank=False)
-    endDate = models.DateField(null=False, blank=False)
-    location = models.CharField(max_length=100, null=False, blank=False)
-    locationType = models.CharField(max_length=100, null=False, blank=False, choices=LOCATION_TYPE_CHOICES, default='Hybrid')
+    startDate = models.DateField(null=True, blank=True)
+    endDate = models.DateField(null=True, blank=True)
+    location = models.CharField(max_length=100, null=True, blank=True)
+    workMode = models.CharField(max_length=100, null=True, blank=True, choices=WORK_MODE_CHOICES, default='Hybrid')
 
     class Meta:
         ordering = ['-createdAt']

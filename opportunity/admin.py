@@ -13,13 +13,15 @@ class OpportunityAdmin(admin.ModelAdmin):
         'isActive',
         'name',
         'description',
+        'payPerMonth',
+        'isPaid',
         'alumni',
         'type',
         'companyName',
         'startDate',
         'endDate',
         'location',
-        'locationType',
+        'workMode',
     )
     list_filter = (
         'createdAt',
