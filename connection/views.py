@@ -5,12 +5,28 @@ from rest_framework.views import APIView
 
 from connection.models import Connection
 from connection.serializers import ConnectionSerializer
+from connection.filters import ConnectionFilter
 from users.models import AlumniPortalUser
 
 
 class ConnectionView(ModelViewSet):
     serializer_class = ConnectionSerializer
     queryset = Connection.objects.all()
+    filterset_class = ConnectionFilter
+    search_fields = [
+        'userA__firstName',
+        'userA__lastName',
+        'userA__email',
+        'userB__firstName',
+        'userB__lastName',
+        'userB__email',
+        'status'
+    ]
+    ordering_fields = (
+        'createdAt',
+        'updatedAt',
+    )
+    ordering = ('-createdAt',)
 
     def list(self, request, *args, **kwargs):
         current_user: AlumniPortalUser = request.user
