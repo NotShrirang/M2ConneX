@@ -1,21 +1,28 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from users.models import (
-    AlumniPortalUser,
-    Alumni,
-    Student,
-    Faculty,
-    SuperAdmin
-)
 
-class AlumniPortalUserAdmin(UserAdmin):
-    model = AlumniPortalUser
+from .models import AlumniPortalUser, Alumni, Student, Faculty, SuperAdmin
+
+
+@admin.register(AlumniPortalUser)
+class AlumniPortalUserAdmin(admin.ModelAdmin):
     list_display = (
+        'password',
+        'last_login',
+        'id',
+        'identifier',
         'email',
         'firstName',
         'lastName',
         'department',
         'privilege',
+        'bio',
+        'profilePicture',
+        'resume',
+        'city',
+        'phoneNumber',
+        'signInMethod',
+        'createdAt',
+        'updatedAt',
         'isVerified',
         'is_active',
         'is_admin',
@@ -23,35 +30,77 @@ class AlumniPortalUserAdmin(UserAdmin):
         'is_superuser',
     )
     list_filter = (
-        'department',
-        'privilege',
+        'last_login',
+        'city',
+        'createdAt',
+        'updatedAt',
         'isVerified',
         'is_active',
         'is_admin',
         'is_staff',
         'is_superuser',
     )
-    search_fields = ('email',)
-    ordering = ('email',)
+    raw_id_fields = ('groups', 'user_permissions')
 
-    fieldsets = (
-        (None, {'fields': ('email', 'firstName', 'lastName', 'password', 'signInMethod')}),
-        ('Department Info', {'fields': ('department',)}),
-        ('Profile Info', {'fields': ('bio', 'resume', 'profilePicture',)}),
-        ('Address Info', {'fields': ('city',)}),
-        ('Privilege Info', {'fields': ('privilege',)}),
-        ('Permissions', {'fields': ('isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser')}),
+
+@admin.register(Alumni)
+class AlumniAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'createdAt',
+        'updatedAt',
+        'isActive',
+        'user',
+        'batch',
+        'enrollmentYear',
+        'passingOutYear',
+    )
+    list_filter = (
+        'createdAt',
+        'updatedAt',
+        'isActive',
+        'user',
+        'enrollmentYear',
+        'passingOutYear',
     )
 
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'firstName', 'lastName', 'password1', 'password2', 'department', 'privilege'),
-        }),
+
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'createdAt',
+        'updatedAt',
+        'isActive',
+        'user',
+        'batch',
+        'enrollmentYear',
+        'passingOutYear',
+    )
+    list_filter = (
+        'createdAt',
+        'updatedAt',
+        'isActive',
+        'user',
+        'enrollmentYear',
+        'passingOutYear',
     )
 
-admin.site.register(AlumniPortalUser, AlumniPortalUserAdmin)
-admin.site.register(Alumni)
-admin.site.register(Student)
-admin.site.register(Faculty)
-admin.site.register(SuperAdmin)
+
+@admin.register(Faculty)
+class FacultyAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'createdAt',
+        'updatedAt',
+        'isActive',
+        'user',
+        'college',
+    )
+    list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
+
+
+@admin.register(SuperAdmin)
+class SuperAdminAdmin(admin.ModelAdmin):
+    list_display = ('id', 'createdAt', 'updatedAt', 'isActive', 'user')
+    list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
