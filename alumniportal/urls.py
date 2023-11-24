@@ -3,6 +3,7 @@ from django.urls import path, include
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+
 class HomeView(APIView):
     def get(self, request):
         return Response({
@@ -17,8 +18,10 @@ class HomeView(APIView):
                 '/donation/',
                 '/csc/',
                 '/connection/',
+                '/blog/'
             ]
         })
+
 
 urlpatterns = [
     path("", HomeView.as_view()),
@@ -32,4 +35,5 @@ urlpatterns = [
     path("donation/", include("donation.urls")),
     path("csc/", include("csc.urls")),
     path("connection/", include("connection.urls")),
+    path("blog/", include("blog.urls")),
 ]
