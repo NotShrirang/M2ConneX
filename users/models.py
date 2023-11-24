@@ -55,19 +55,24 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    identifier = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    identifier = models.CharField(
+        max_length=255, unique=True, blank=True, null=True)
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
     firstName = models.CharField(max_length=255, blank=False, null=False)
     lastName = models.CharField(max_length=255, blank=False, null=False)
-    department = models.CharField(max_length=255, blank=True, null=True, choices=DEPARTMENT_CHOICES)
-    privilege = models.CharField(max_length=255, blank=True, null=True, choices=PRIVILEGE_CHOICES)
+    department = models.CharField(
+        max_length=255, blank=True, null=True, choices=DEPARTMENT_CHOICES)
+    privilege = models.CharField(
+        max_length=255, blank=True, null=True, choices=PRIVILEGE_CHOICES)
     bio = models.TextField(null=True, blank=True)
     resume = models.URLField(max_length=255, blank=True, null=True)
     profilePicture = models.URLField(max_length=255, blank=True, null=True)
     resume = models.URLField(max_length=255, blank=True, null=True)
-    city = models.ForeignKey(to=City, on_delete=models.CASCADE, related_name='users', blank=True, null=True)
+    city = models.ForeignKey(
+        to=City, on_delete=models.CASCADE, related_name='users', blank=True, null=True)
     phoneNumber = PhoneNumberField(blank=True, null=True)
-    signInMethod = models.CharField(max_length=255, blank=True, null=True, choices=SIGN_IN_METHOD)
+    signInMethod = models.CharField(
+        max_length=255, blank=True, null=True, choices=SIGN_IN_METHOD)
 
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
@@ -97,7 +102,8 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
 
 
 class Alumni(CODEBaseModel):
-    user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='alumni')
+    user = models.OneToOneField(
+        to=AlumniPortalUser, on_delete=models.CASCADE, related_name='alumni')
     batch = models.IntegerField(blank=False, null=False)
     enrollmentYear = models.DateTimeField(blank=False, null=False)
     passingOutYear = models.DateTimeField(blank=False, null=False)
@@ -112,7 +118,8 @@ class Alumni(CODEBaseModel):
 
 
 class Student(CODEBaseModel):
-    user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='student')
+    user = models.OneToOneField(
+        to=AlumniPortalUser, on_delete=models.CASCADE, related_name='student')
     batch = models.IntegerField(blank=False, null=False)
     enrollmentYear = models.DateTimeField(blank=False, null=False)
     passingOutYear = models.DateTimeField(blank=False, null=False)
@@ -127,7 +134,8 @@ class Student(CODEBaseModel):
 
 
 class Faculty(CODEBaseModel):
-    user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='staff')
+    user = models.OneToOneField(
+        to=AlumniPortalUser, on_delete=models.CASCADE, related_name='staff')
     college = models.CharField(max_length=255, blank=False, null=False)
 
     def __str__(self):
@@ -140,7 +148,8 @@ class Faculty(CODEBaseModel):
 
 
 class SuperAdmin(CODEBaseModel):
-    user = models.OneToOneField(to=AlumniPortalUser, on_delete=models.CASCADE, related_name='superAdmin')
+    user = models.OneToOneField(
+        to=AlumniPortalUser, on_delete=models.CASCADE, related_name='superAdmin')
 
     def __str__(self):
         return self.user.email
@@ -149,3 +158,18 @@ class SuperAdmin(CODEBaseModel):
         db_table = 'super_admin'
         verbose_name = 'Super Admin'
         verbose_name_plural = 'Super Admins'
+        managed = True
+
+
+class Blogger(CODEBaseModel):
+    user = models.OneToOneField(
+        to=AlumniPortalUser, on_delete=models.CASCADE, related_name='blogger')
+
+    def __str__(self):
+        return self.user.email
+
+    class Meta:
+        db_table = 'blogger'
+        verbose_name = 'Blogger'
+        verbose_name_plural = 'Bloggers'
+        managed = True

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import AlumniPortalUser, Alumni, Student, Faculty, SuperAdmin
+from .models import AlumniPortalUser, Alumni, Student, Faculty, SuperAdmin, Blogger
 
 
 @admin.register(AlumniPortalUser)
@@ -102,5 +103,11 @@ class FacultyAdmin(admin.ModelAdmin):
 
 @admin.register(SuperAdmin)
 class SuperAdminAdmin(admin.ModelAdmin):
+    list_display = ('id', 'createdAt', 'updatedAt', 'isActive', 'user')
+    list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
+
+
+@admin.register(Blogger)
+class BloggerAdmin(admin.ModelAdmin):
     list_display = ('id', 'createdAt', 'updatedAt', 'isActive', 'user')
     list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
