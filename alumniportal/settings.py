@@ -18,13 +18,13 @@ SECRET_KEY = "django-insecure-)i(vz3!4g4!mlmr-=q65*g_!zr5(no4xqsiu*7v1_%!e@%#5ab
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '.ngrok-free.app', # For testing purposes
+    '.ngrok-free.app',  # For testing purposes
     'localhost',
     '127.0.0.1',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.ngrok-free.app' # For testing purposes
+    'https://*.ngrok-free.app'  # For testing purposes
 ]
 
 
@@ -90,7 +90,7 @@ WSGI_APPLICATION = "alumniportal.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("DB_NAME"),
         "USER": os.getenv("DB_USER"),
         "PASSWORD": os.getenv("DB_PASS"),
