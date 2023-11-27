@@ -8,22 +8,22 @@ from .models import Blog, BlogComment, BlogAction
 class BlogAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'createdAt',
-        'updatedAt',
-        'isActive',
         'title',
         'content',
         'author',
         'isPublic',
         'isDrafted',
-    )
-    list_filter = (
         'createdAt',
         'updatedAt',
         'isActive',
+    )
+    list_filter = (
         'author',
         'isPublic',
         'isDrafted',
+        'createdAt',
+        'updatedAt',
+        'isActive',
     )
 
 
@@ -31,12 +31,12 @@ class BlogAdmin(admin.ModelAdmin):
 class BlogCommentAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'createdAt',
-        'updatedAt',
-        'isActive',
         'comment',
         'user',
         'blog',
+        'createdAt',
+        'updatedAt',
+        'isActive',
     )
     list_filter = ('createdAt', 'updatedAt', 'isActive', 'user', 'blog')
 
@@ -45,11 +45,11 @@ class BlogCommentAdmin(admin.ModelAdmin):
 class BlogActionAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'createdAt',
-        'updatedAt',
-        'isActive',
         'action',
         'user',
         'blog',
+        'createdAt',
+        'updatedAt',
+        'isActive',
     )
     list_filter = ('createdAt', 'updatedAt', 'isActive', 'user', 'blog')

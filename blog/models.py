@@ -1,6 +1,6 @@
 from django.db import models
 from CODE.models import CODEBaseModel
-from users.models import Blogger
+from users.models import Blogger, AlumniPortalUser
 from django.utils.translation import gettext_lazy as _
 
 
@@ -30,12 +30,15 @@ class BlogComment(CODEBaseModel):
     comment = models.TextField(verbose_name=_("Content"),
                                null=False, db_column="content")
     user = models.ForeignKey(verbose_name=_("User"),
-                             to=Blogger, on_delete=models.CASCADE, db_column="author_id", related_name="user_blog_comments")
+                             to=AlumniPortalUser, on_delete=models.CASCADE, db_column="author_id", related_name="user_blog_comments")
     blog = models.ForeignKey(verbose_name=_("Blog"),
                              to=Blog, on_delete=models.CASCADE, db_column="blog_id", related_name="comments")
 
     def __str__(self):
-        return self.comment
+        try:
+            return self.comment[:20]
+        except IndexError:
+            return self.comment
 
     class Meta:
         db_table = "blog_comment"
@@ -55,12 +58,12 @@ class BlogAction(CODEBaseModel):
     action = models.CharField(verbose_name=_("Action"), max_length=10,
                               choices=ACTION_CHOICES, null=False, db_column="action")
     user = models.ForeignKey(verbose_name=_("User"),
-                             to=Blogger, on_delete=models.CASCADE, db_column="user_id", related_name="user_blog_actions")
+                             to=AlumniPortalUser, on_delete=models.CASCADE, db_column="user_id", related_name="user_blog_actions")
     blog = models.ForeignKey(verbose_name=_("Blog"),
                              to=Blog, on_delete=models.CASCADE, db_column="blog_id", related_name="actions")
 
     def __str__(self):
-        return self.action + " by " + self.user.user.firstName + " " + self.user.user.lastName
+        return self.action + " by " + self.user.firstName + " " + self.user.lastName
 
     class Meta:
         db_table = "blog_action"
