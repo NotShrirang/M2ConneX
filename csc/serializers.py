@@ -50,8 +50,6 @@ class CitySerializer(serializers.ModelSerializer):
             "updatedAt",
             "name",
             "state",
-            "latitude",
-            "longitude",
         )
         list_fields = fields
         get_fields = fields

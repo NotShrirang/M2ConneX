@@ -8,13 +8,14 @@ class EventSerializer(ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'date', 'time', 'venue', 'department', 'link', 'createdByUser', 'createdByUserName', 'createdByUserProfilePicture', 'createdAt', 'updatedAt']
+        fields = ['id', 'name', 'description', 'date', 'time', 'venue', 'department', 'link',
+                  'createdByUser', 'createdByUserName', 'createdByUserProfilePicture', 'createdAt', 'updatedAt']
         list_fields = fields
         get_fields = fields
 
         def get_createdByUserName(self, obj):
             return obj.createdByUser.firstName + " " + obj.createdByUser.lastName
-        
+
         def get_createdByUserProfilePicture(self, obj):
             return obj.createdByUser.profilePicture
 
@@ -24,7 +25,7 @@ class EventImageSerializer(ModelSerializer):
 
     class Meta:
         model = EventImage
-        fields = ['id', 'event', 'evenName', 'image']
+        fields = ['id', 'event', 'eventName', 'image']
         list_fields = fields
         get_fields = fields
 

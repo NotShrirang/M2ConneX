@@ -13,7 +13,8 @@ class UserSkillSerializer(ModelSerializer):
 
     class Meta:
         model = UserSkill
-        fields = ['id', 'user', 'skill', 'experience', 'createdAt', 'updatedAt']
+        fields = ['id', 'user', 'skill', 'experience',
+                  'userName', 'createdAt', 'updatedAt']
         list_fields = fields
         get_fields = fields
 

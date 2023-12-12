@@ -37,7 +37,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "corsheaders",
+    'rest_framework_simplejwt.token_blacklist',
     "django_extensions",
+    "drf_yasg",
     "blog",
     "connection",
     "csc",
@@ -48,9 +52,6 @@ INSTALLED_APPS = [
     "opportunity",
     "skill",
     "users",
-    "rest_framework",
-    "corsheaders",
-    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
