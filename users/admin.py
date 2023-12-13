@@ -7,23 +7,22 @@ from .models import AlumniPortalUser, Alumni, Student, Faculty, SuperAdmin, Blog
 @admin.register(AlumniPortalUser)
 class AlumniPortalUserAdmin(admin.ModelAdmin):
     list_display = (
-        'password',
-        'last_login',
         'id',
-        'identifier',
         'email',
         'firstName',
         'lastName',
         'department',
         'privilege',
+        'phoneNumber',
+        'city',
+        'identifier',
         'bio',
         'profilePicture',
         'resume',
-        'city',
-        'phoneNumber',
         'signInMethod',
         'createdAt',
         'updatedAt',
+        'last_login',
         'isVerified',
         'is_active',
         'is_admin',
@@ -48,13 +47,13 @@ class AlumniPortalUserAdmin(admin.ModelAdmin):
 class AlumniAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'createdAt',
-        'updatedAt',
-        'isActive',
         'user',
         'batch',
         'enrollmentYear',
         'passingOutYear',
+        'isActive',
+        'createdAt',
+        'updatedAt',
     )
     list_filter = (
         'createdAt',
@@ -70,13 +69,13 @@ class AlumniAdmin(admin.ModelAdmin):
 class StudentAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'createdAt',
-        'updatedAt',
-        'isActive',
         'user',
         'batch',
         'enrollmentYear',
         'passingOutYear',
+        'isActive',
+        'createdAt',
+        'updatedAt',
     )
     list_filter = (
         'createdAt',
@@ -92,22 +91,22 @@ class StudentAdmin(admin.ModelAdmin):
 class FacultyAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'createdAt',
-        'updatedAt',
-        'isActive',
         'user',
         'college',
+        'isActive',
+        'createdAt',
+        'updatedAt',
     )
     list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
 
 
 @admin.register(SuperAdmin)
 class SuperAdminAdmin(admin.ModelAdmin):
-    list_display = ('id', 'createdAt', 'updatedAt', 'isActive', 'user')
+    list_display = ('id', 'user', 'createdAt', 'updatedAt', 'isActive')
     list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
 
 
 @admin.register(Blogger)
 class BloggerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'createdAt', 'updatedAt', 'isActive', 'user')
+    list_display = ('id', 'user', 'createdAt', 'updatedAt', 'isActive')
     list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')

@@ -50,8 +50,9 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 serializer.save()
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            user_id = AlumniPortalUser.objects.get(email=user['email']).id
-            user_data = serializer.data
+            user = AlumniPortalUser.objects.get(email=user['email'])
+            user_id = user.id
+            user_data = AlumniPortalUserSerializer(user).data
             user_data['id'] = user_id
             if privilege == "Alumni":
                 alumni_data = {
@@ -113,8 +114,10 @@ class AlumniPortalUserLoginView(generics.GenericAPIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AlumniPortalUserLogoutView(generics.GenericAPIView):
@@ -123,9 +126,11 @@ class AlumniPortalUserLogoutView(generics.GenericAPIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AlumniPortalUserView(ModelViewSet):
