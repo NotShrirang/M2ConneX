@@ -4,14 +4,14 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Country(CODEBaseModel):
-    name = models.CharField(verbose_name=_("Name"), max_length=100, db_column="name")
+    name = models.CharField(verbose_name=_("Name"), max_length=100, db_column="name", unique=True)
 
     class Meta:
         db_table = "country"
         verbose_name_plural = "Countries"
 
     def __str__(self):
-        return self.name
+        return str(self.id) + " - " + self.name
 
 
 class State(CODEBaseModel):
@@ -28,7 +28,7 @@ class State(CODEBaseModel):
         verbose_name_plural = "States"
 
     def __str__(self):
-        return self.name
+        return str(self.id) + " - " + self.name + ", " + self.country.name
 
 
 class City(CODEBaseModel):
@@ -45,4 +45,4 @@ class City(CODEBaseModel):
         verbose_name_plural = "Cities"
 
     def __str__(self):
-        return self.name
+        return str(self.id) + " - " + self.name + ", "+ self.state.name + ", " + self.state.country.name
