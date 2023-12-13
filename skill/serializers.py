@@ -19,4 +19,4 @@ class UserSkillSerializer(ModelSerializer):
         get_fields = fields
 
     def get_userName(self, instance):
-        return instance.user.name
+        return instance.user.firstName + " " + instance.user.lastName
