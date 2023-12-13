@@ -32,9 +32,9 @@ class AlumniPortalUserManager(BaseUserManager):
 class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
 
     PRIVILEGE_CHOICES = (
-        ('Student', 'Super Admin'),
-        ('Student', 'Staff'),
-        ('Student', 'Alumni'),
+        ('Super Admin', 'Super Admin'),
+        ('Staff', 'Staff'),
+        ('Alumni', 'Alumni'),
         ('Student', 'Student'),
     )
 
