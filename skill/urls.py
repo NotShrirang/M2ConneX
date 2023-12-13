@@ -13,7 +13,7 @@ class HomeView(APIView):
             'message': 'Welcome to MMCOE Alumni Portal Skill API',
             'endpoints': [
                 '/skill/',
-                '/userskill/',
+                '/user-skill/',
             ]
         })
 
