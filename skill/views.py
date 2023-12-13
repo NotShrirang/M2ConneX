@@ -19,21 +19,21 @@ class SkillView(ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().create(request, *args, **kwargs)
         else:
             return Response({"error": "You are not authorized to create a skill"}, status=status.HTTP_401_UNAUTHORIZED)
     
     def retrieve(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().retrieve(request, *args, **kwargs)
         else:
             return Response({"error": "You are not authorized to view a skill"}, status=status.HTTP_401_UNAUTHORIZED)
     
     def update(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             if current_user.privilege == '1' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
             elif current_user.privilege in [2,3,4]:
@@ -49,7 +49,7 @@ class SkillView(ModelViewSet):
     
     def partial_update(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             if current_user.privilege == '1' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
             elif current_user.privilege in [2,3,4]:
@@ -79,7 +79,7 @@ class SkillView(ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().list(request, *args, **kwargs)
         else:
             return Response({"error": "You are not authorized to view skills"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -90,21 +90,21 @@ class UserSkillView(ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().create(request, *args, **kwargs)
         else:
             return Response({"error": "You are not authorized to create a skill"}, status=status.HTTP_401_UNAUTHORIZED)
     
     def retrieve(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().retrieve(request, *args, **kwargs)
         else:
             return Response({"error": "You are not authorized to view a skill"}, status=status.HTTP_401_UNAUTHORIZED)
     
     def update(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             if current_user.privilege == '1' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
             elif current_user.privilege in [2,3,4]:
@@ -120,7 +120,7 @@ class UserSkillView(ModelViewSet):
     
     def partial_update(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             if current_user.privilege == '1' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
             elif current_user.privilege in [2,3,4]:
@@ -150,7 +150,7 @@ class UserSkillView(ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().list(request, *args, **kwargs)
         else:
             return Response({"error": "You are not authorized to view skills"}, status=status.HTTP_401_UNAUTHORIZED)

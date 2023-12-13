@@ -13,21 +13,21 @@ class DonationView(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().list(request, *args, **kwargs)
         else:
             return Response({"error": "Your account is not active. Please contact admin"}, status=status.HTTP_401_UNAUTHORIZED)
 
     def retrieve(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().list(request, *args, **kwargs)
         else:
             return Response({"error": "Your account is not active. Please contact admin"}, status=status.HTTP_401_UNAUTHORIZED)
 
     def create(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             if current_user.privilege == '3':
                 return super().create(request, *args, **kwargs)
             else:

@@ -13,21 +13,21 @@ class EventView(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().list(request, *args, **kwargs)
         else:
             return Response({"error": "Your account is not active. Please contact admin"}, status=status.HTTP_401_UNAUTHORIZED)
 
     def retrieve(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             return super().retrieve(request, *args, **kwargs)
         else:
             return Response({"error": "Your account is not active. Please contact admin"}, status=status.HTTP_401_UNAUTHORIZED)
 
     def create(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             if current_user.privilege in ['1', '2'] or current_user.is_superuser:
                 return super().create(request, *args, **kwargs)
             else:
@@ -37,7 +37,7 @@ class EventView(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             if current_user.privilege == '1' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
             elif current_user.privilege == '2':
@@ -53,7 +53,7 @@ class EventView(ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             if current_user.privilege == '1' or current_user.is_superuser:
                 return super().partial_update(request, *args, **kwargs)
             elif current_user.privilege == '2':
@@ -69,7 +69,7 @@ class EventView(ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         current_user = request.user
-        if current_user.isActive:
+        if current_user.is_active:
             event = Event.objects.get(id=kwargs['pk'])
             if current_user.privilege == '1' or current_user.is_superuser:
                 event.isActive = False
