@@ -19,20 +19,93 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics, permissions
+from django.db import transaction
 
 
 class AlumniPortalUserRegisterView(generics.GenericAPIView):
     serializer_class = RegisterSerializer
 
     def post(self, request):
-        user = request.data
-        serializer = self.serializer_class(data=user)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        user_id = AlumniPortalUser.objects.get(email=user['email']).id
-        user_data = serializer.data
-        user_data['id'] = user_id
-        return Response(user_data, status=status.HTTP_201_CREATED)
+        with transaction.atomic():
+            user = request.data
+            if "privilege" not in request.data:
+                return Response({"error": "privilege is required"}, status=status.HTTP_400_BAD_REQUEST)
+            privilege = request.data['privilege']
+            if privilege in ["Alumni", "Student"]:
+                if "batch" not in request.data:
+                    return Response({"error": "batch is required"}, status=status.HTTP_400_BAD_REQUEST)
+                if "enrollmentYear" not in request.data:
+                    return Response({"error": "enrollmentYear is required"}, status=status.HTTP_400_BAD_REQUEST)
+                if "passingOutYear" not in request.data:
+                    return Response({"error": "passingOutYear is required"}, status=status.HTTP_400_BAD_REQUEST)
+            elif privilege == "Staff":
+                if "college" not in request.data:
+                    return Response({"error": "college is required"}, status=status.HTTP_400_BAD_REQUEST)
+            elif privilege == "Super Admin":
+                pass
+            else:
+                return Response({"error": "invalid privilege"}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.serializer_class(data=user)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            user_id = AlumniPortalUser.objects.get(email=user['email']).id
+            user_data = serializer.data
+            user_data['id'] = user_id
+            if privilege == "Alumni":
+                alumni_data = {
+                    "user": user_id,
+                    "batch": request.data['batch'],
+                    "enrollmentYear": request.data['enrollmentYear'],
+                    "passingOutYear": request.data['passingOutYear']
+                }
+                alumni_serializer = AlumniSerializer(data=alumni_data)
+                if alumni_serializer.is_valid():
+                    alumni_serializer.save()
+                    user_data['Alumni'] = alumni_serializer.data
+                    return Response(user_data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(alumni_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif privilege == "Student":
+                student_data = {
+                    "user": user_id,
+                    "batch": request.data['batch'],
+                    "enrollmentYear": request.data['enrollmentYear'],
+                    "passingOutYear": request.data['passingOutYear']
+                }
+                student_serializer = StudentSerializer(data=student_data)
+                if student_serializer.is_valid():
+                    student_serializer.save()
+                    user_data['Student'] = student_serializer.data
+                    return Response(user_data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(student_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif privilege == "Staff":
+                faculty_data = {
+                    "user": user_id,
+                    "college": request.data['college']
+                }
+                faculty_serializer = FacultySerializer(data=faculty_data)
+                if faculty_serializer.is_valid():
+                    faculty_serializer.save()
+                    user_data['Staff'] = faculty_serializer.data
+                    return Response(user_data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(faculty_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif privilege == "Super Admin":
+                superAdmin_data = {
+                    "user": user_id
+                }
+                superAdmin_serializer = SuperAdminSerializer(data=superAdmin_data)
+                if superAdmin_serializer.is_valid():
+                    superAdmin_serializer.save()
+                    user_data['Super Admin'] = superAdmin_serializer.data
+                    return Response(user_data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(superAdmin_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"error": "invalid privilege"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AlumniPortalUserLoginView(generics.GenericAPIView):
