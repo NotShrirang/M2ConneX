@@ -28,7 +28,7 @@ class EventView(ModelViewSet):
     def create(self, request, *args, **kwargs):
         current_user = request.user
         if current_user.is_active:
-            if current_user.privilege in ['1', '2'] or current_user.is_superuser:
+            if current_user.privilege in ['Super Admin', 'Staff'] or current_user.is_superuser:
                 return super().create(request, *args, **kwargs)
             else:
                 return Response({"error": "You are not authorized to create an event"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -38,9 +38,9 @@ class EventView(ModelViewSet):
     def update(self, request, *args, **kwargs):
         current_user = request.user
         if current_user.is_active:
-            if current_user.privilege == '1' or current_user.is_superuser:
+            if current_user.privilege == 'Super Admin' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
-            elif current_user.privilege == '2':
+            elif current_user.privilege == 'Staff':
                 event = Event.objects.get(id=kwargs['pk'])
                 if event.createdByUser == current_user:
                     return super().update(request, *args, **kwargs)
@@ -54,9 +54,9 @@ class EventView(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         current_user = request.user
         if current_user.is_active:
-            if current_user.privilege == '1' or current_user.is_superuser:
+            if current_user.privilege == 'Super Admin' or current_user.is_superuser:
                 return super().partial_update(request, *args, **kwargs)
-            elif current_user.privilege == '2':
+            elif current_user.privilege == 'Staff':
                 event = Event.objects.get(id=kwargs['pk'])
                 if event.createdByUser == current_user:
                     return super().partial_update(request, *args, **kwargs)
@@ -71,11 +71,11 @@ class EventView(ModelViewSet):
         current_user = request.user
         if current_user.is_active:
             event = Event.objects.get(id=kwargs['pk'])
-            if current_user.privilege == '1' or current_user.is_superuser:
+            if current_user.privilege == 'Super Admin' or current_user.is_superuser:
                 event.isActive = False
                 event.save()
                 return Response({"success": "Event deleted successfully"}, status=status.HTTP_200_OK)
-            elif current_user.privilege == '2':
+            elif current_user.privilege == 'Staff':
                 if event.createdByUser == current_user:
                     event.isActive = False
                     event.save()

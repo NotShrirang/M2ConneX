@@ -28,10 +28,10 @@ class DonationView(ModelViewSet):
     def create(self, request, *args, **kwargs):
         current_user = request.user
         if current_user.is_active:
-            if current_user.privilege == '3':
+            if current_user.privilege == 'Alumni':
                 return super().create(request, *args, **kwargs)
             else:
-                return Response({"error": "We appreciate your efforts, but sadly we can't donation from you."}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"error": "We appreciate your efforts, but sadly we can't take donation from you."}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({"error": "We would really like your donation. Please contact the college office for further procedure."}, status=status.HTTP_401_UNAUTHORIZED)
 

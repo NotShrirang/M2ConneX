@@ -69,7 +69,7 @@ class OpportunityView(ModelViewSet):
     def create(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3':
+            if user.privilege == 'Alumni':
                 data = request.data
                 alumni = Alumni.objects.filter(user=user.id)
                 if alumni.exists():
@@ -90,7 +90,7 @@ class OpportunityView(ModelViewSet):
     def update(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3':
+            if user.privilege == 'Alumni':
                 opportunity = Opportunity.objects.get(id=kwargs['id'])
                 if opportunity.alumni == user:
                     super().update(request, *args, **kwargs)
@@ -104,7 +104,7 @@ class OpportunityView(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3':
+            if user.privilege == 'Alumni':
                 opportunity = Opportunity.objects.get(id=kwargs['id'])
                 if opportunity.alumni == user:
                     super().update(request, *args, **kwargs)
@@ -118,7 +118,7 @@ class OpportunityView(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3' or user.is_superuser or user.privilege == '1':
+            if user.privilege == 'Alumni' or user.is_superuser or user.privilege == 'Super Admin':
                 opportunity = Opportunity.objects.get(id=kwargs['id'])
                 if opportunity.alumni == user:
                     opportunity.isActive = False
@@ -164,7 +164,7 @@ class OpportunitySkillView(ModelViewSet):
     def create(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3':
+            if user.privilege == 'Alumni':
                 opportunity = Opportunity.objects.get(id=request.data['opportunity_id'])
                 if opportunity.alumni == user:
                     super().create(request, *args, **kwargs)
@@ -178,7 +178,7 @@ class OpportunitySkillView(ModelViewSet):
     def update(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3':
+            if user.privilege == 'Alumni':
                 opportunity = Opportunity.objects.get(id=request.data['opportunity_id'])
                 if opportunity.alumni == user:
                     super().update(request, *args, **kwargs)
@@ -192,7 +192,7 @@ class OpportunitySkillView(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3':
+            if user.privilege == 'Alumni':
                 opportunity = Opportunity.objects.get(id=request.data['opportunity_id'])
                 if opportunity.alumni == user:
                     super().update(request, *args, **kwargs)
@@ -206,7 +206,7 @@ class OpportunitySkillView(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3' or user.is_superuser or user.privilege == '1':
+            if user.privilege == 'Alumni' or user.is_superuser or user.privilege == 'Super Admin':
                 opportunity = Opportunity.objects.get(id=request.data['opportunity_id'])
                 if opportunity.alumni == user:
                     skill = OpportunitySkill.objects.get(id=kwargs['id'])
@@ -258,7 +258,7 @@ class OpportunityApplicationView(ModelViewSet):
     def create(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '3':
+            if user.privilege == 'Student':
                 super().create(request, *args, **kwargs)
             else:
                 return Response({'error': 'You are not authorized to create opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -268,14 +268,17 @@ class OpportunityApplicationView(ModelViewSet):
     def update(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '1' or user.is_superuser:
+            if user.privilege == 'Student' or user.is_superuser:
                 application = OpportunityApplication.objects.get(id=kwargs['id'])
-                serializer = OpportunityApplicationSerializer(data=request.data)
-                if serializer.is_valid():
-                    serializer.update(application, serializer.data)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+                if application.applicant == user:
+                    serializer = OpportunityApplicationSerializer(data=request.data)
+                    if serializer.is_valid():
+                        serializer.update(application, serializer.data)
+                        return Response(serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': 'You are not authorized to update opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response({'error': 'You are not authorized to update opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
@@ -284,14 +287,17 @@ class OpportunityApplicationView(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '1' or user.is_superuser:
+            if user.privilege == 'Student' or user.is_superuser:
                 application = OpportunityApplication.objects.get(id=kwargs['id'])
-                serializer = OpportunityApplicationSerializer(data=request.data)
-                if serializer.is_valid():
-                    serializer.update(application, serializer.data)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+                if application.applicant == user:
+                    serializer = OpportunityApplicationSerializer(data=request.data)
+                    if serializer.is_valid():
+                        serializer.update(application, serializer.data)
+                        return Response(serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': 'You are not authorized to update opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response({'error': 'You are not authorized to update opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
@@ -300,7 +306,7 @@ class OpportunityApplicationView(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege == '1' or user.is_superuser or user.privilege == '3':
+            if user.privilege == 'Student' or user.is_superuser or user.privilege == 'Super Admin':
                 application = OpportunityApplication.objects.get(id=kwargs['id'])
                 application.isActive = False
                 application.save()

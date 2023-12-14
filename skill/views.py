@@ -34,14 +34,8 @@ class SkillView(ModelViewSet):
     def update(self, request, *args, **kwargs):
         current_user = request.user
         if current_user.is_active:
-            if current_user.privilege == '1' or current_user.is_superuser:
+            if current_user.privilege == 'Super Admin' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
-            elif current_user.privilege in [2,3,4]:
-                skill = Skill.objects.get(id=kwargs['pk'])
-                if skill.createdByUser == current_user:
-                    return super().update(request, *args, **kwargs)
-                else:
-                    return Response({"error": "You are not authorized to update the skills"}, status=status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response({"error": "You are not authorized to update the skills"}, status=status.HTTP_401_UNAUTHORIZED)
         else:
@@ -50,14 +44,8 @@ class SkillView(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         current_user = request.user
         if current_user.is_active:
-            if current_user.privilege == '1' or current_user.is_superuser:
+            if current_user.privilege == 'Super Admin' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
-            elif current_user.privilege in [2,3,4]:
-                skill = Skill.objects.get(id=kwargs['pk'])
-                if skill.createdByUser == current_user:
-                    return super().update(request, *args, **kwargs)
-                else:
-                    return Response({"error": "You are not authorized to update the skills"}, status=status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response({"error": "You are not authorized to update the skills"}, status=status.HTTP_401_UNAUTHORIZED)
         else:
@@ -66,16 +54,15 @@ class SkillView(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege in ['1','2','3','4'] or user.is_superuser:
+            if user.privilege == 'Super Admin' or user.is_superuser:
                 skill = Skill.objects.get(id=kwargs['id'])
-                if skill.createdByUser == user or user.privilege == '1':
-                    return Response({'message': 'Opportunity deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-                else:
-                    return Response({'error': 'You are not authorized to delete opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
+                skill.isActive = False
+                skill.save()
+                return Response({'message': 'Skill deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
             else:
-                return Response({'error': 'You are not authorized to delete opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({'error': 'You are not authorized to delete skills'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response({'error': 'You are not authorized to delete opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'You are not authorized to delete skills'}, status=status.HTTP_401_UNAUTHORIZED)
     
     def list(self, request, *args, **kwargs):
         current_user = request.user
@@ -105,9 +92,9 @@ class UserSkillView(ModelViewSet):
     def update(self, request, *args, **kwargs):
         current_user = request.user
         if current_user.is_active:
-            if current_user.privilege == '1' or current_user.is_superuser:
+            if current_user.privilege == 'Super Admin' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
-            elif current_user.privilege in [2,3,4]:
+            elif current_user.privilege in ['Staff', 'Alumni', 'Student']:
                 skill = Skill.objects.get(id=kwargs['pk'])
                 if skill.createdByUser == current_user:
                     return super().update(request, *args, **kwargs)
@@ -121,9 +108,9 @@ class UserSkillView(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         current_user = request.user
         if current_user.is_active:
-            if current_user.privilege == '1' or current_user.is_superuser:
+            if current_user.privilege == 'Super Admin' or current_user.is_superuser:
                 return super().update(request, *args, **kwargs)
-            elif current_user.privilege in [2,3,4]:
+            elif current_user.privilege in ['Staff', 'Alumni', 'Student']:
                 skill = Skill.objects.get(id=kwargs['pk'])
                 if skill.createdByUser == current_user:
                     return super().update(request, *args, **kwargs)
@@ -137,9 +124,9 @@ class UserSkillView(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            if user.privilege in ['1','2','3','4'] or user.is_superuser:
+            if user.privilege in ['Student', 'Staff', 'Alumni', 'Super Admin'] or user.is_superuser:
                 skill = Skill.objects.get(id=kwargs['id'])
-                if skill.createdByUser == user or user.privilege == '1':
+                if skill.createdByUser == user or user.privilege == 'Super Admin':
                     return Response({'message': 'Opportunity deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
                 else:
                     return Response({'error': 'You are not authorized to delete opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
