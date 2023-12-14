@@ -75,12 +75,12 @@ class OpportunityApplicationSerializer(ModelSerializer):
 
     def get_applicantDetails(self, instance):
         data = {
-            'name': instance.applicant.firstName + " " + instance.applicant.lastName,
-            'email': instance.applicant.email,
-            'resume': instance.applicant.resume,
-            'phone': instance.applicant.phoneNumber,
-            'location': instance.applicant.city,
-            'profilePicture': instance.applicant.profilePicture
+            'name': instance.applicant.user.firstName + " " + instance.applicant.user.lastName,
+            'email': instance.applicant.user.email,
+            'resume': instance.applicant.user.resume,
+            'phone': instance.applicant.user.phoneNumber,
+            'location': instance.applicant.user.city,
+            'profilePicture': instance.applicant.user.profilePicture
         }
         return data
 
