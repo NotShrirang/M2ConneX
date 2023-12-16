@@ -91,6 +91,6 @@ class OpportunityApplicationSerializer(ModelSerializer):
             'type': instance.opportunity.type,
             'companyName': instance.opportunity.companyName,
             'location': instance.opportunity.location,
-            'locationType': instance.opportunity.locationType
+            'workMode': instance.opportunity.workMode
         }
         return data
