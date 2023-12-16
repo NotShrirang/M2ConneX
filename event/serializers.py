@@ -3,21 +3,20 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 
 class EventSerializer(ModelSerializer):
-    createdByUserName = SerializerMethodField()
-    createdByUserProfilePicture = SerializerMethodField()
+    userName = SerializerMethodField()
+    userProfilePicture = SerializerMethodField()
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'date', 'time', 'venue', 'department', 'link',
-                  'createdByUser', 'createdByUserName', 'createdByUserProfilePicture', 'createdAt', 'updatedAt']
+        fields = ['id', 'name', 'description', 'date', 'time', 'venue', 'department', 'link', 'createdByUser', 'userName', 'userProfilePicture', 'createdAt', 'updatedAt']
         list_fields = fields
         get_fields = fields
 
-        def get_createdByUserName(self, obj):
-            return obj.createdByUser.firstName + " " + obj.createdByUser.lastName
+    def get_userName(self, obj):
+        return obj.createdByUser.firstName + " " + obj.createdByUser.lastName
 
-        def get_createdByUserProfilePicture(self, obj):
-            return obj.createdByUser.profilePicture
+    def get_userProfilePicture(self, obj):
+        return obj.createdByUser.profilePicture
 
 
 class EventImageSerializer(ModelSerializer):
