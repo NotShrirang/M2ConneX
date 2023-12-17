@@ -6,13 +6,14 @@ class FeedSerializer(ModelSerializer):
     userName = SerializerMethodField()
     profilePicture = SerializerMethodField()
     userBio = SerializerMethodField()
+    isLiked = SerializerMethodField()
     likesCount = SerializerMethodField()
     commentsCount = SerializerMethodField()
     sharesCount = SerializerMethodField()
 
     class Meta:
         model = Feed
-        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'profilePicture', 'likesCount', 'commentsCount', 'sharesCount']
+        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'profilePicture', 'isLiked', 'likesCount', 'commentsCount', 'sharesCount']
         list_fields = fields
         get_fields = fields
 
@@ -20,24 +21,36 @@ class FeedSerializer(ModelSerializer):
         return (obj.user.firstName or "") + " " + (obj.user.lastName or "")
     
     def get_userBio(self, obj):
+        DEPARTMENTS = {
+            "1": "Computer Engineering",
+            "2": "Mechanical Engineering",
+            "3": "Electronics & Telecommunication Engineering",
+            "4": "Electrical Engineering",
+            "5": "Information Technology",
+            "6": "Artificial Intelligence & Data Science",
+            "7": "First Year Engineering",
+            "8": "MBA"
+        }
         if obj.user.bio == '' or obj.user.bio == "" or obj.user.bio == None:
-            if obj.user.is_superuser:
+            if obj.user.is_superuser or obj.user.privilege == "Super Admin":
                 return "Superuser at MMCOE"
             if obj.user.privilege == "Alumni":
-                return "Batch of " + str(obj.user.alumni.batch) + " | " + obj.user.alumni.branch + " | " + obj.user.alumni.currentLocation
+                return "Batch of " + str(obj.user.alumni.batch) + " | " + DEPARTMENTS[obj.user.department]
             elif obj.user.privilege == "Student":
-                return "Batch of " + str(obj.user.student.batch) + " | " + obj.user.student.branch + " | " + obj.user.student.currentLocation
+                return "Batch of " + str(obj.user.student.batch) + " | " + DEPARTMENTS[obj.user.department]
             elif obj.user.privilege == "Staff":
-                return "Professor at MMCOE | " + obj.user.staff.department + " | " + obj.user.staff.currentLocation
+                return "Professor at MMCOE | " + obj.user.department
             else:
                 return "MMCOE Alumni Portal User"
         else:
-            print("Hello")
             return obj.user.bio
         
 
     def get_profilePicture(self, obj):
         return obj.user.profilePicture or ""
+    
+    def get_isLiked(self, obj):
+        return obj.actions.filter(action='LIKE', user=self.context['request'].user).exists()
     
     def get_likesCount(self, obj):
         return obj.actions.filter(action='LIKE').count()

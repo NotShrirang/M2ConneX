@@ -19,7 +19,7 @@ from feed.filters import (
 from connection.models import Connection
 from django.db.models import Q
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import generics
+from rest_framework import generics, views
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -60,7 +60,7 @@ class FeedView(ModelViewSet):
             'body': request.data.get('body'),
             'user': current_user.id
         }
-        serializer = FeedSerializer(data=data)
+        serializer = FeedSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -190,6 +190,59 @@ class FeedActionView(ModelViewSet):
     search_fields = ['feed__subject', 'feed__body', 'feed__user__name']
     ordering = ('-createdAt',)
 
+    def create(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not current_user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+        feedId = request.data.get('feed', None)
+        actionId = request.data.get('action', None)
+        if feedId is None:
+            return Response({'message': 'feed is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if actionId is None:
+            return Response({'message': 'action is required'}, status=status.HTTP_400_BAD_REQUEST)
+        data = {
+            'feed': feedId,
+            'action': actionId,
+            'user': current_user.id
+        }
+        serializer = FeedActionSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        feedAction = FeedAction.objects.get(id=kwargs.get('pk'))
+        if feedAction.user.id != request.user.id:
+            return Response({'message': 'You are not authorized to perform this action'}, status=status.HTTP_401_UNAUTHORIZED)
+        return super().update(request, *args, **kwargs)
+    
+    def partial_update(self, request, *args, **kwargs):
+        feedAction = FeedAction.objects.get(id=kwargs.get('pk'))
+        if feedAction.user.id != request.user.id:
+            return Response({'message': 'You are not authorized to perform this action'}, status=status.HTTP_401_UNAUTHORIZED)
+        return super().partial_update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        return Response({'message': 'Method not supported.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+
+class FeedActionDislikeView(views.APIView):
+    permission_classes = [IsAuthenticated,]
+
+    def post(self, request, *args, **kwargs):
+        current_user = request.user
+        feedId = request.data.get('feed', None)
+        if feedId is None:
+            return Response({'message': 'feedAction is required'}, status=status.HTTP_400_BAD_REQUEST)
+        feedAction = FeedAction.objects.get(feed=feedId, user=current_user.id, action='LIKE')
+        if feedAction.user.id != request.user.id:
+            return Response({'message': 'You are not authorized to perform this action'}, status=status.HTTP_401_UNAUTHORIZED)
+        feedAction.delete()
+        return Response({'message': 'Feed action deleted successfully'}, status=status.HTTP_200_OK)
 
 class FeedActionCommentView(ModelViewSet):
     serializer_class = FeedActionCommentSerializer

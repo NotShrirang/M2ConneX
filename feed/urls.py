@@ -1,6 +1,7 @@
 from feed.views import (
     FeedView,
     FeedActionView,
+    FeedActionDislikeView,
     FeedImageView,
     FeedActionCommentView,
     RecommendFeedView
@@ -21,6 +22,7 @@ class HomeView(APIView):
                 '/feed-action/',
                 '/feed-image/',
                 '/feed-action-comment/',
+                '/feed-action-dislike/'
             ]
         })
 
@@ -34,4 +36,5 @@ router.register('feed-action-comment', FeedActionCommentView, basename='feed-act
 urlpatterns = [
     path('', HomeView.as_view()),
     path('recommend-feed/', RecommendFeedView.as_view()),
+    path('feed-action-dislike/', FeedActionDislikeView.as_view())
 ] + router.urls
