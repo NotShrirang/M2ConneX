@@ -20,13 +20,20 @@ class FeedSerializer(ModelSerializer):
         return (obj.user.firstName or "") + " " + (obj.user.lastName or "")
     
     def get_userBio(self, obj):
-        try:
-            return obj.user.alumni.bio or "Batch of " + str(obj.user.alumni.batch) + " | " + obj.user.alumni.branch + " | " + obj.user.alumni.currentLocation
-        except:
-            try:
+        if obj.user.bio == '' or obj.user.bio == "" or obj.user.bio == None:
+            if obj.user.is_superuser:
+                return "Superuser at MMCOE"
+            if obj.user.privilege == "Alumni":
+                return "Batch of " + str(obj.user.alumni.batch) + " | " + obj.user.alumni.branch + " | " + obj.user.alumni.currentLocation
+            elif obj.user.privilege == "Student":
                 return "Batch of " + str(obj.user.student.batch) + " | " + obj.user.student.branch + " | " + obj.user.student.currentLocation
-            except:
-                return "Professor at MMCOE | " + obj.user.staff.department
+            elif obj.user.privilege == "Staff":
+                return "Professor at MMCOE | " + obj.user.staff.department + " | " + obj.user.staff.currentLocation
+            else:
+                return "MMCOE Alumni Portal User"
+        else:
+            print("Hello")
+            return obj.user.bio
         
 
     def get_profilePicture(self, obj):
