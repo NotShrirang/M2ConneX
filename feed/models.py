@@ -68,4 +68,4 @@ class FeedActionComment(CODEBaseModel):
         verbose_name_plural = _('Feed Action Comments')
 
     def __str__(self):
-        return (self.user.firstName or "") + (self.user.lastName or "") + " - " + self.comment[:20] + "..."
+        return (self.feedAction.user.firstName or "") + (self.feedAction.user.lastName or "") + " - " + self.comment[:20] + "..."

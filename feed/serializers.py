@@ -10,10 +10,11 @@ class FeedSerializer(ModelSerializer):
     likesCount = SerializerMethodField()
     commentsCount = SerializerMethodField()
     sharesCount = SerializerMethodField()
+    images = SerializerMethodField()
 
     class Meta:
         model = Feed
-        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'profilePicture', 'isLiked', 'likesCount', 'commentsCount', 'sharesCount']
+        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'profilePicture', 'isLiked', 'likesCount', 'commentsCount', 'sharesCount', 'images']
         list_fields = fields
         get_fields = fields
 
@@ -60,6 +61,11 @@ class FeedSerializer(ModelSerializer):
     
     def get_sharesCount(self, obj):
         return obj.actions.filter(action='SHARE').count()
+    
+    def get_images(self, obj):
+        feed = Feed.objects.get(id=obj.id)
+        images = feed.images.all()
+        return FeedImageSerializer(images, many=True).data
 
 
 class FeedImageSerializer(ModelSerializer):

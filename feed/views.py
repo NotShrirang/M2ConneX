@@ -63,7 +63,32 @@ class FeedView(ModelViewSet):
         serializer = FeedSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            final_data = serializer.data
+            feedId = serializer.data['id']
+            print(Feed.objects.get(id=feedId).images.all())
+            images = request.data.get('images', [])
+            final_image_data = []
+            for image in images:
+                if image == images[0]:
+                    image_data={
+                        'feed': feedId.replace('"', '').replace("'", ""),
+                        'image': image,
+                        'coverImage': True
+                    }
+                else:
+                    image_data={
+                        'feed': feedId.replace('"', '').replace("'", ""),
+                        'image': image,
+                        'coverImage': False
+                    }
+                print(image_data)
+                if image_data['feed'] == '' or image_data['feed'] == None:
+                    return Response({'message': 'Feed is required'}, status=status.HTTP_400_BAD_REQUEST)
+                feedImage = FeedImage.objects.create(feed=Feed.objects.get(id=image_data['feed']), image=image_data['image'], coverImage=image_data['coverImage'])
+                image_serializer = FeedImageSerializer(feedImage)
+                final_image_data.append(image_serializer.data)
+            final_data['images'] = final_image_data
+            return Response(final_data, status=status.HTTP_201_CREATED)
         return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
@@ -197,20 +222,40 @@ class FeedActionView(ModelViewSet):
         if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         feedId = request.data.get('feed', None)
-        actionId = request.data.get('action', None)
+        action = request.data.get('action', None)
         if feedId is None:
             return Response({'message': 'feed is required'}, status=status.HTTP_400_BAD_REQUEST)
-        if actionId is None:
+        if action is None:
             return Response({'message': 'action is required'}, status=status.HTTP_400_BAD_REQUEST)
         data = {
             'feed': feedId,
-            'action': actionId,
+            'action': action,
             'user': current_user.id
         }
+        if action == 'LIKE':
+            if FeedAction.objects.filter(feed=feedId, user=current_user.id, action='LIKE').exists():
+                return Response({'message': 'You have already liked this feed'}, status=status.HTTP_400_BAD_REQUEST)
+        elif action == 'COMMENT':
+            data['comment'] = request.data.get('comment', None)
+            if data['comment'] is None:
+                return Response({'message': 'comment is required'}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = FeedActionSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            final_data = serializer.data
+            if action == 'COMMENT':
+                comment_data = {
+                    'feedAction': serializer.data['id'],
+                    'comment': data['comment'],
+                }
+                comment_serializer = FeedActionCommentSerializer(data=comment_data)
+                if comment_serializer.is_valid():
+                    comment_serializer.save()
+                else:
+                    return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                final_data['comment'] = comment_serializer.data
+            return Response(final_data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -250,6 +295,36 @@ class FeedActionCommentView(ModelViewSet):
     filterset_class = FeedActionCommentFilter
     permission_classes = [IsAuthenticated,]
     search_fields = ['feedAction__feed__subject', 'feedAction__feed__body', 'feedAction__feed__user__name']
+    ordering = ('-createdAt',)
+
+    def list(self, request, *args, **kwargs):
+        feed = request.query_params.get('feed', None)
+        if feed is None:
+            return Response({"message": "feed is required"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            feedActions = FeedAction.objects.filter(feed=feed, action='COMMENT')
+            qs = FeedActionComment.objects.filter(feedAction__in=feedActions)
+            if qs.exists():
+                serializer = FeedActionCommentSerializer(qs, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Comments not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def create(self, request, *args, **kwargs):
+        return Response({'message': 'Method not supported.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def update(self, request, *args, **kwargs):
+        return Response({'message': 'Method not supported.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def partial_update(self, request, *args, **kwargs):
+        return Response({'message': 'Method not supported.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    def destroy(self, request, *args, **kwargs):
+        feedActionComment = FeedActionComment.objects.get(id=kwargs.get('pk'))
+        if feedActionComment.feedAction.user.id != request.user.id:
+            return Response({'message': 'You are not authorized to perform this action'}, status=status.HTTP_401_UNAUTHORIZED)
+        feedActionComment.delete()
+        return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_200_OK)
 
 
 class RecommendFeedView(generics.ListAPIView):
@@ -268,7 +343,11 @@ class RecommendFeedView(generics.ListAPIView):
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         userA_connected = Connection.objects.filter(userA=current_user, status='accepted').values_list('userB', flat=True)
         userB_connected = Connection.objects.filter(userB=current_user, status='accepted').values_list('userA', flat=True)
-        qs = self.filter_queryset(self.queryset.exclude(user=current_user.id))
-        qs = qs.filter(Q(user__in=userA_connected) | Q(user__in=userB_connected) | Q(isPublic=True))
-        serializer = FeedSerializer(qs, many=True)
+        # qs = Feed.objects.filter(self.queryset.exclude(user=current_user.id))
+        qs =  Feed.objects.filter(Q(user__in=userA_connected) | Q(user__in=userB_connected) | Q(isPublic=True) | Q(user=current_user.id))
+        # Paginate the queryset
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = FeedSerializer(page, context={'request': request}, many=True)
+            return self.get_paginated_response(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
