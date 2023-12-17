@@ -5,18 +5,29 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 class FeedSerializer(ModelSerializer):
     userName = SerializerMethodField()
     profilePicture = SerializerMethodField()
+    userBio = SerializerMethodField()
     likesCount = SerializerMethodField()
     commentsCount = SerializerMethodField()
     sharesCount = SerializerMethodField()
 
     class Meta:
         model = Feed
-        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'profilePicture', 'likesCount', 'commentsCount', 'sharesCount']
+        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'profilePicture', 'likesCount', 'commentsCount', 'sharesCount']
         list_fields = fields
         get_fields = fields
 
     def get_userName(self, obj):
         return (obj.user.firstName or "") + " " + (obj.user.lastName or "")
+    
+    def get_userBio(self, obj):
+        try:
+            return obj.user.alumni.bio or "Batch of " + str(obj.user.alumni.batch) + " | " + obj.user.alumni.branch + " | " + obj.user.alumni.currentLocation
+        except:
+            try:
+                return "Batch of " + str(obj.user.student.batch) + " | " + obj.user.student.branch + " | " + obj.user.student.currentLocation
+            except:
+                return "Professor at MMCOE | " + obj.user.staff.department
+        
 
     def get_profilePicture(self, obj):
         return obj.user.profilePicture or ""

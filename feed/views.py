@@ -37,7 +37,7 @@ class FeedView(ModelViewSet):
         current_user = request.user
         if not current_user.is_active:
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
-        if not current_user.is_verified:
+        if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         return super().retrieve(request, *args, **kwargs)
 
@@ -45,7 +45,7 @@ class FeedView(ModelViewSet):
         current_user = request.user
         if not current_user.is_active:
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
-        if not current_user.is_verified:
+        if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         return super().list(request, *args, **kwargs)
 
@@ -53,7 +53,7 @@ class FeedView(ModelViewSet):
         current_user = request.user
         if not current_user.is_active:
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
-        if not current_user.is_verified:
+        if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         data = {
             'subject': request.data.get('subject'),
@@ -70,7 +70,7 @@ class FeedView(ModelViewSet):
         current_user = request.user
         if not current_user.is_active:
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
-        if not current_user.is_verified:
+        if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
         feed = Feed.objects.get(id=kwargs.get('pk'))
@@ -84,7 +84,7 @@ class FeedView(ModelViewSet):
         current_user = request.user
         if not current_user.is_active:
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
-        if not current_user.is_verified:
+        if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
         feed = Feed.objects.get(id=kwargs.get('pk'))
@@ -98,7 +98,7 @@ class FeedView(ModelViewSet):
         current_user = request.user
         if not current_user.is_active:
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
-        if not current_user.is_verified:
+        if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         feed = Feed.objects.get(id=kwargs.get('pk'))
         if feed.user.id != current_user.id:

@@ -13,7 +13,7 @@ from opportunity.filters import (
     OpportunityApplicationFilter,
     OpportunitySkillFilter
 )
-from users.models import Alumni
+from users.models import Alumni, Student
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from rest_framework import filters
@@ -48,9 +48,7 @@ class OpportunityView(ModelViewSet):
     def list(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            qs = self.filter_queryset(self.queryset.filter(isActive=True))
-            serializer = OpportunitySerializer(qs, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return super().list(request, *args, **kwargs)
         else:
             return Response({'error': 'You are not authorized to view opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -232,12 +230,22 @@ class OpportunityApplicationView(ModelViewSet):
     def list(self, request, *args, **kwargs):
         user = request.user
         if user.is_active:
-            application = self.filter_queryset(self.queryset.filter(isActive=True))
-            application = application.filter(Q(opportunity__alumni=user) | Q(applicant=user))
-            if application.exists():
-                    return Response(OpportunityApplicationSerializer(application).data, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': 'Opportunity applications not found.'}, status=status.HTTP_404_NOT_FOUND)
+            alumni = Alumni.objects.filter(user=user.id)
+            if alumni.exists():
+                application = self.filter_queryset(self.queryset.filter(isActive=True))
+                application = application.filter(opportunity__alumni=alumni.first())
+                if application.exists():
+                    return Response(OpportunityApplicationSerializer(application, many=True).data, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Opportunity applications not found.'}, status=status.HTTP_404_NOT_FOUND) 
+            student = Student.objects.filter(user=user.id)
+            if student.exists():
+                application = self.filter_queryset(self.queryset.filter(isActive=True))
+                application = application.filter(applicant=student.first())
+                if application.exists():
+                    return Response(OpportunityApplicationSerializer(application, many=True).data, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Opportunity applications not found.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'error': 'You are not authorized to view opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -259,7 +267,7 @@ class OpportunityApplicationView(ModelViewSet):
         user = request.user
         if user.is_active:
             if user.privilege == 'Student':
-                super().create(request, *args, **kwargs)
+                return super().create(request, *args, **kwargs)
             else:
                 return Response({'error': 'You are not authorized to create opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
@@ -354,7 +362,7 @@ class RecommendOpportunityView(generics.ListAPIView):
     queryset = Opportunity.objects.all()
     filterset_class = OpportunityFilter
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ['name', 'description', 'companyName', 'location', 'locationType', 'skills__skill__name']
+    search_fields = ['name', 'description', 'companyName', 'location', 'workMode', 'skills__skill__name']
 
     def list(self, request, *args, **kwargs):
         user = request.user
