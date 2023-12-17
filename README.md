@@ -10,6 +10,8 @@ DB_USER = *****
 DB_PASS = *****
 DB_HOST = *****
 DB_PORT = *****
+EMAIL = *****
+EMAIL_PASSWORD = *****
 ```
 
 ## To run docker container:
