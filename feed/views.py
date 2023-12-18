@@ -25,6 +25,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from CODE.utils.s3 import upload_image
+from CODE.utils.recommendations import get_feed_recommendation
 
 
 class FeedView(ModelViewSet):
@@ -32,6 +33,7 @@ class FeedView(ModelViewSet):
     queryset = Feed.objects.all()
     filterset_class = FeedFilter
     permission_classes = [IsAuthenticated,]
+    ordering = ('-createdAt',)
 
     def retrieve(self, request, *args, **kwargs):
         current_user = request.user
@@ -47,7 +49,16 @@ class FeedView(ModelViewSet):
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
         if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
-        return super().list(request, *args, **kwargs)
+        qs = self.queryset.filter(isActive=True)
+        userA_connected = Connection.objects.filter(userA=current_user, status='accepted').values_list('userB', flat=True)
+        userB_connected = Connection.objects.filter(userB=current_user, status='accepted').values_list('userA', flat=True)
+        qs = qs.exclude(user=current_user.id)
+        qs = qs.filter(Q(user__in=userA_connected) | Q(user__in=userB_connected) | Q(isPublic=True)).order_by('-createdAt')
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = FeedSerializer(page, context={'request': request}, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         current_user = request.user
@@ -65,7 +76,6 @@ class FeedView(ModelViewSet):
             serializer.save()
             final_data = serializer.data
             feedId = serializer.data['id']
-            print(Feed.objects.get(id=feedId).images.all())
             images = request.data.get('images', [])
             final_image_data = []
             for image in images:
@@ -89,7 +99,8 @@ class FeedView(ModelViewSet):
                 final_image_data.append(image_serializer.data)
             final_data['images'] = final_image_data
             return Response(final_data, status=status.HTTP_201_CREATED)
-        return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
         current_user = request.user
@@ -97,13 +108,44 @@ class FeedView(ModelViewSet):
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
         if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
-        data = request.data
+        data = {
+            'subject': request.data.get('subject'),
+            'body': request.data.get('body'),
+            'user': current_user
+        }
         feed = Feed.objects.get(id=kwargs.get('pk'))
         if feed.user.id != current_user.id:
             return Response({'message': 'You are not authorized to perform this action'}, status=status.HTTP_401_UNAUTHORIZED)
-        serializer = FeedSerializer(feed)
+        serializer = FeedSerializer(feed, context={'request': request})
         serializer.update(feed, data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        feedImageQs = FeedImage.objects.filter(feed=Feed.objects.get(id=kwargs.get('pk'))).order_by('createdAt')
+        if feedImageQs.exists():
+            for feedImage in feedImageQs:
+                feedImage.delete()
+        final_data = serializer.data
+        feedId = serializer.data['id']
+        images = request.data.get('images', [])
+        final_image_data = []
+        for image in images:
+            if image == images[0]:
+                image_data={
+                    'feed': feedId.replace('"', '').replace("'", ""),
+                    'image': image,
+                    'coverImage': True
+                }
+            else:
+                image_data={
+                    'feed': feedId.replace('"', '').replace("'", ""),
+                    'image': image,
+                    'coverImage': False
+                }
+            if image_data['feed'] == '' or image_data['feed'] == None:
+                return Response({'message': 'Feed is required'}, status=status.HTTP_400_BAD_REQUEST)
+            feedImage = FeedImage.objects.create(feed=Feed.objects.get(id=image_data['feed']), image=image_data['image'], coverImage=image_data['coverImage'])
+            image_serializer = FeedImageSerializer(feedImage)
+            final_image_data.append(image_serializer.data)
+            final_data['images'] = final_image_data
+        return Response(final_data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, *args, **kwargs):
         current_user = request.user
@@ -341,10 +383,21 @@ class RecommendFeedView(generics.ListAPIView):
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
         if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+        # userA_connected = Connection.objects.filter(userA=current_user, status='accepted').values_list('userB', flat=True)
+        # userB_connected = Connection.objects.filter(userB=current_user, status='accepted').values_list('userA', flat=True)
+        # # qs = Feed.objects.filter(self.queryset.exclude(user=current_user.id))
+        # qs =  Feed.objects.filter(Q(user__in=userA_connected) | Q(user__in=userB_connected) | Q(isPublic=True) | Q(user=current_user.id))
+        # # Paginate the queryset
+        # page = self.paginate_queryset(qs)
+        # if page is not None:
+        #     serializer = FeedSerializer(page, context={'request': request}, many=True)
+        #     return self.get_paginated_response(serializer.data)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
         userA_connected = Connection.objects.filter(userA=current_user, status='accepted').values_list('userB', flat=True)
         userB_connected = Connection.objects.filter(userB=current_user, status='accepted').values_list('userA', flat=True)
-        # qs = Feed.objects.filter(self.queryset.exclude(user=current_user.id))
-        qs =  Feed.objects.filter(Q(user__in=userA_connected) | Q(user__in=userB_connected) | Q(isPublic=True) | Q(user=current_user.id))
+        qs = Feed.objects.filter(isActive=True)
+        qs =  qs.filter(Q(user__in=userA_connected) | Q(user__in=userB_connected) | Q(isPublic=True))
+        qs, similarity_score = get_feed_recommendation(qs, current_user)
         # Paginate the queryset
         page = self.paginate_queryset(qs)
         if page is not None:

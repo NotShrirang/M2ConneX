@@ -11,10 +11,11 @@ class FeedSerializer(ModelSerializer):
     commentsCount = SerializerMethodField()
     sharesCount = SerializerMethodField()
     images = SerializerMethodField()
+    isEditable = SerializerMethodField()
 
     class Meta:
         model = Feed
-        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'profilePicture', 'isLiked', 'likesCount', 'commentsCount', 'sharesCount', 'images']
+        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'profilePicture', 'isLiked', 'likesCount', 'commentsCount', 'sharesCount', 'images', 'isEditable']
         list_fields = fields
         get_fields = fields
 
@@ -67,6 +68,8 @@ class FeedSerializer(ModelSerializer):
         images = feed.images.all()
         return FeedImageSerializer(images, many=True).data
 
+    def get_isEditable(self, obj):
+        return obj.user == self.context['request'].user
 
 class FeedImageSerializer(ModelSerializer):
     feedName = SerializerMethodField()
