@@ -49,3 +49,47 @@ def get_feed_recommendation(qs, user):
     feed_objects = [feed_objects[i] for i in feed_indices]
 
     return feed_objects, similarity_score
+
+def get_user_recommendation(qs, current_user):
+    """
+    qs: Queryset of User objects
+    current_user: Current user
+    """
+
+    # Get all user objects
+    user_objects = qs.all()
+
+    if qs.count() == 0:
+        return user_objects, []
+
+    # Get all user attributes
+    user_attributes = [user.firstName + user.lastName + user.department + user.email for user in user_objects]
+
+    # Get attributes of the current user
+    current_user_attributes = [current_user.firstName + current_user.lastName + current_user.department + current_user.email]
+
+    # Initialize TfidfVectorizer
+    vectorizer = TfidfVectorizer()
+
+    # Fit and transform user attributes
+    user_attributes_vector = vectorizer.fit_transform(user_attributes)
+
+    # Transform current user attributes
+    current_user_attributes_vector = vectorizer.transform(current_user_attributes)
+
+    # Get similarity score
+    similarity_score = cosine_similarity(current_user_attributes_vector, user_attributes_vector)
+
+    # Get indices of user objects
+    user_indices = [i for i in range(len(user_objects))]
+
+    # Get indices of user objects in descending order of similarity score
+    user_indices = [x for _, x in sorted(zip(similarity_score[0], user_indices), reverse=True)]
+
+    # Get similarity score in descending order
+    similarity_score = sorted(similarity_score[0], reverse=True)
+
+    # Get user objects in descending order of similarity score
+    user_objects = [user_objects[i] for i in user_indices]
+
+    return user_objects, similarity_score
