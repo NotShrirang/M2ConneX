@@ -15,7 +15,7 @@ class HomeView(APIView):
             'message': 'Welcome to MMCOE Alumni Portal Connection API',
             'endpoints': [
                 '/connection/',
-                '/connection/recommend-connection'
+                '/connection/recommend-connection',
                 '/connection-request/',
                 '/connection-request-accept/',
             ]
