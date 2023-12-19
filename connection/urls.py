@@ -2,6 +2,7 @@ from connection.views import (
     ConnectionView,
     ConnectionRequestView,
     ConnectionRequestAcceptView,
+    RecommendConnectionView
 )
 from django.urls import path
 from rest_framework.routers import SimpleRouter
@@ -14,6 +15,7 @@ class HomeView(APIView):
             'message': 'Welcome to MMCOE Alumni Portal Connection API',
             'endpoints': [
                 '/connection/',
+                '/connection/recommend-connection'
                 '/connection-request/',
                 '/connection-request-accept/',
             ]
@@ -24,6 +26,7 @@ router.register('connection', ConnectionView, basename='connection')
 
 urlpatterns = [
     path('', HomeView.as_view()),
+    path('recommend-connection/', RecommendConnectionView.as_view()),
     path('connection-request/', ConnectionRequestView.as_view()),
     path('connection-request-accept/', ConnectionRequestAcceptView.as_view()),
 ] + router.urls

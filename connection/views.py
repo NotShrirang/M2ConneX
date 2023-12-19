@@ -2,12 +2,14 @@ from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status, generics
 
 from connection.models import Connection
 from connection.serializers import ConnectionSerializer
 from connection.filters import ConnectionFilter
 from users.models import AlumniPortalUser
-
+from CODE.utils.recommendations import get_user_recommendation
 
 class ConnectionView(ModelViewSet):
     serializer_class = ConnectionSerializer
@@ -210,3 +212,37 @@ class ConnectionRequestAcceptView(APIView):
                 return Response({"details": "Connection request accepted successfully."}, status=200)
         else:
             return Response({"details": "Connection request does not exist."}, status=400)
+
+class RecommendConnectionView(generics.ListAPIView):
+    serializer_class = ConnectionSerializer
+    queryset = Connection.objects.all()
+    filterset_class = ConnectionFilter
+    permission_classes = [IsAuthenticated,]
+    search_fields = ['userA__firstName', 'userA__lastName',  'userA__email', 'userB__firstName', 'userB__lastName', 'userB__email']
+    ordering = ('-createdAt',)
+
+    def list(self, request, *args, **kwargs):
+        current_user = request.user
+
+        if not current_user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not current_user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        userA_connected = Connection.objects.filter(userA=current_user, status='accepted').values_list('userB', flat=True)
+        userB_connected = Connection.objects.filter(userB=current_user, status='accepted').values_list('userA', flat=True)
+
+        qs = Connection.objects.filter(isActive=True)
+
+        qs = qs.filter(Q(userA__in=userA_connected) | Q(userB__in=userB_connected))
+
+        qs, similarity_score = get_user_recommendation(qs, current_user)
+
+        # Paginate the queryset
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = ConnectionSerializer(page, context={'request': request}, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
