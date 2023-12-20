@@ -12,6 +12,9 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from django.contrib.auth.password_validation import validate_password
 import requests
+from django.db import models
+from connection.models import Connection
+from connection.serializers import ConnectionSerializer
 
 
 class AlumniPortalUserSerializer(ModelSerializer):
@@ -19,6 +22,41 @@ class AlumniPortalUserSerializer(ModelSerializer):
         model = AlumniPortalUser
         fields = ['id', 'email', 'firstName', 'lastName', 'department', 'privilege', 'bio', 'resume', 'profilePicture',
                   'city', 'phoneNumber', 'createdAt', 'updatedAt', 'isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser']
+
+
+class RecommendUserSerializer(ModelSerializer):
+    mutualConnections = SerializerMethodField()
+
+    class Meta:
+        model = AlumniPortalUser
+        fields = ['id', 'email', 'firstName', 'lastName',
+                  'department', 'bio', 'profilePicture', 'mutualConnections']
+
+    def get_mutualConnections(self, obj):
+        current_user_connectionA = self.context['request'].user.userA.filter(
+            status='accepted', isActive=True).values_list('userB', flat=True)
+        current_user_connectionB = self.context['request'].user.userB.filter(
+            status='accepted', isActive=True).values_list('userA', flat=True)
+        current_user_connections = set(
+            current_user_connectionA).union(current_user_connectionB)
+
+        user_connectionA = obj.userA.filter(
+            status='accepted', isActive=True).values_list('userB', flat=True)
+        user_connectionB = obj.userB.filter(
+            status='accepted', isActive=True).values_list('userA', flat=True)
+
+        user_connections = set(user_connectionA).union(user_connectionB)
+
+        mutual_connections = current_user_connections.intersection(
+            user_connections)
+
+        mutually_connected_users = AlumniPortalUser.objects.filter(
+            id__in=mutual_connections)
+
+        serializer = AlumniPortalUserSerializer(
+            mutually_connected_users, many=True)
+
+        return serializer.data
 
 
 class RegisterSerializer(ModelSerializer):

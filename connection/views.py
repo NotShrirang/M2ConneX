@@ -5,11 +5,15 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, generics
 
+from analytics.models import UserAnalytics
+from analytics.serializers import UserAnalyticsSerializer
 from connection.models import Connection
 from connection.serializers import ConnectionSerializer
 from connection.filters import ConnectionFilter
 from users.models import AlumniPortalUser
+from users.serializers import AlumniPortalUserSerializer, RecommendUserSerializer
 from CODE.utils.recommendations import get_user_recommendation
+
 
 class ConnectionView(ModelViewSet):
     serializer_class = ConnectionSerializer
@@ -37,10 +41,11 @@ class ConnectionView(ModelViewSet):
         elif current_user.isVerified is False:
             return Response({"detail": "User is not verified"}, status=400)
         else:
-            queryset = Connection.objects.filter(Q(userA=current_user) | Q(userB=current_user))
+            queryset = Connection.objects.filter(
+                Q(userA=current_user) | Q(userB=current_user))
             serializer = ConnectionSerializer(queryset, many=True)
             return Response(serializer.data)
-    
+
     def retrieve(self, request, *args, **kwargs):
         connectionId = kwargs.get('pk')
         connection = Connection.objects.filter(id=connectionId)
@@ -83,7 +88,8 @@ class ConnectionView(ModelViewSet):
         elif current_user.isVerified is False:
             return Response({"detail": "User is not verified"}, status=400)
         else:
-            serializer = ConnectionSerializer(connection, data=request.data, partial=True)
+            serializer = ConnectionSerializer(
+                connection, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.update(connection, serializer.validated_data)
                 return Response(serializer.data)
@@ -102,7 +108,8 @@ class ConnectionView(ModelViewSet):
         elif current_user.isVerified is False:
             return Response({"detail": "User is not verified"}, status=400)
         else:
-            serializer = ConnectionSerializer(connection, data=request.data, partial=True)
+            serializer = ConnectionSerializer(
+                connection, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.update(connection, serializer.validated_data)
                 return Response(serializer.data)
@@ -152,7 +159,7 @@ class ConnectionRequestView(APIView):
         {
             "userB": 2
         }
-    
+
     * Sample response:
         {
             "id": 1,
@@ -161,13 +168,15 @@ class ConnectionRequestView(APIView):
             "status": "pending",
         }
     """
+
     def post(self, request, *args, **kwargs):
         current_user: AlumniPortalUser = request.user
         if not current_user.is_active:
             return Response({"detail": "User is not active"}, status=400)
         elif not current_user.isVerified:
             return Response({"detail": "User is not verified"}, status=400)
-        qs = AlumniPortalUser.objects.filter(id=request.data.get('userB', None))
+        qs = AlumniPortalUser.objects.filter(
+            id=request.data.get('userB', None))
         if qs.exists():
             userB = qs.first()
             if userB.is_active is False:
@@ -175,7 +184,8 @@ class ConnectionRequestView(APIView):
             elif userB.isVerified is False:
                 return Response({"detail": "User B is not verified"}, status=400)
             else:
-                connection_qs = Connection.objects.filter(userA=current_user.id, userB=userB.id, status="pending")
+                connection_qs = Connection.objects.filter(
+                    userA=current_user.id, userB=userB.id, status="pending")
                 if connection_qs.exists():
                     return Response({"detail": "Connection request already sent"}, status=400)
                 else:
@@ -202,23 +212,45 @@ class ConnectionRequestAcceptView(APIView):
             return Response({"detail": "User is not active"}, status=400)
         elif not current_user.isVerified:
             return Response({"detail": "User is not verified"}, status=400)
-        connection = Connection.objects.filter(id=request.data.get('connectionId')).first()
+        connection = Connection.objects.filter(
+            id=request.data.get('connectionId'))
+        if not connection.exists():
+            return Response({"detail": "Connection request does not exist"}, status=400)
+        connection = connection.first()
+        if connection.userB != current_user:
+            return Response({"detail": "User is not authorized to accept this connection request"}, status=400)
+        if connection.userA.is_active is False:
+            return Response({"detail": "User A is not active"}, status=400)
+        elif connection.userA.isVerified is False:
+            return Response({"detail": "User A is not verified"}, status=400)
         if connection.isActive:
             if connection.status == 'accepted':
                 return Response({"details": "Connection request already accepted."}, status=400)
             else:
                 connection.status = 'accepted'
                 connection.save()
+                UserAnalytics.objects.create(
+                    profileUser=connection.userA,
+                    visitor=connection.userB,
+                    analyticsType='connection'
+                )
+                UserAnalytics.objects.create(
+                    profileUser=connection.userB,
+                    visitor=connection.userA,
+                    analyticsType='connection'
+                )
                 return Response({"details": "Connection request accepted successfully."}, status=200)
         else:
             return Response({"details": "Connection request does not exist."}, status=400)
+
 
 class RecommendConnectionView(generics.ListAPIView):
     serializer_class = ConnectionSerializer
     queryset = Connection.objects.all()
     filterset_class = ConnectionFilter
     permission_classes = [IsAuthenticated,]
-    search_fields = ['userA__firstName', 'userA__lastName',  'userA__email', 'userB__firstName', 'userB__lastName', 'userB__email']
+    search_fields = ['userA__firstName', 'userA__lastName',
+                     'userA__email', 'userB__firstName', 'userB__lastName', 'userB__email']
     ordering = ('-createdAt',)
 
     def list(self, request, *args, **kwargs):
@@ -230,19 +262,24 @@ class RecommendConnectionView(generics.ListAPIView):
         if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        userA_connected = Connection.objects.filter(userA=current_user, status='accepted').values_list('userB', flat=True)
-        userB_connected = Connection.objects.filter(userB=current_user, status='accepted').values_list('userA', flat=True)
+        userA_connected = Connection.objects.filter(
+            userA=current_user, status='accepted').values_list('userB', flat=True)
+        userB_connected = Connection.objects.filter(
+            userB=current_user, status='accepted').values_list('userA', flat=True)
 
-        qs = Connection.objects.filter(isActive=True)
+        qs = AlumniPortalUser.objects.filter(is_active=True, isVerified=True).exclude(
+            id__in=userA_connected).exclude(id__in=userB_connected).exclude(id=current_user.id)
 
-        qs = qs.filter(Q(userA__in=userA_connected) | Q(userB__in=userB_connected))
+        # qs = qs.filter(Q(id__in=userA_connected) |
+        #                Q(id__in=userB_connected))
 
         qs, similarity_score = get_user_recommendation(qs, current_user)
 
         # Paginate the queryset
         page = self.paginate_queryset(qs)
         if page is not None:
-            serializer = ConnectionSerializer(page, context={'request': request}, many=True)
+            serializer = RecommendUserSerializer(
+                page, context={'request': request}, many=True)
             return self.get_paginated_response(serializer.data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

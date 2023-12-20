@@ -1,19 +1,23 @@
 from connection.models import (
-   Connection
+    Connection
 )
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, ValidationError
 from users.models import (
     AlumniPortalUser
 )
+from django.db import models
 
 
 class ConnectionSerializer(ModelSerializer):
     userADetails = SerializerMethodField()
     userBDetails = SerializerMethodField()
+    mutualConnections = SerializerMethodField()
 
     class Meta:
         model = Connection
-        fields = ['id', 'userA', 'userB', 'status', 'createdAt', 'updatedAt', 'userADetails', 'userBDetails']
+        fields = ['id', 'userA', 'userB', 'status', 'createdAt',
+                  'updatedAt', 'userADetails', 'userBDetails',
+                  'mutualConnections']
         list_fields = fields
         get_fields = fields
         unique_together = ('userA', 'userB')
@@ -36,6 +40,18 @@ class ConnectionSerializer(ModelSerializer):
             "department": obj.userB.department
         }
 
+    def get_mutualConnections(self, obj):
+        userA_connections = Connection.objects.filter(
+            (models.Q(userA=obj.userA) | models.Q(
+                userB=obj.userA)) & models.Q(status='accepted')
+        )
+        userB_connections = Connection.objects.filter(
+            (models.Q(userA=obj.userB) | models.Q(
+                userB=obj.userB)) & models.Q(status='accepted')
+        )
+        mutual_connections = userA_connections.intersection(userB_connections)
+        return mutual_connections.count()
+
     def validate(self, attrs):
         userA = AlumniPortalUser.objects.filter(id=attrs.get('userA').id)
         if not userA.exists():
@@ -56,8 +72,8 @@ class ConnectionSerializer(ModelSerializer):
         if status not in ['pending', 'accepted']:
             raise ValidationError("Invalid status")
         return super().validate(attrs)
-    
-    def create(self, validated_data:dict):
+
+    def create(self, validated_data: dict):
         try:
             status = validated_data.get('status')
         except Exception as e:
