@@ -36,6 +36,7 @@ class HomeView(APIView):
                 '/csc/',
                 '/connection/',
                 '/blog/'
+                '/analytics/'
             ]
         })
 
@@ -59,4 +60,5 @@ urlpatterns = [
     path("csc/", include("csc.urls")),
     path("connection/", include("connection.urls")),
     path("blog/", include("blog.urls")),
+    path("analytics/", include("analytics.urls")),
 ]
