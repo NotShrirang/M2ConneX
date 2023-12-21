@@ -411,6 +411,7 @@ class FeedActionCommentView(ModelViewSet):
 class UserActivityView(generics.ListAPIView):
     permission_classes = [IsAuthenticated,]
     pagination_class = pagination.PageNumberPagination
+    page_size = 10
 
     def list(self, request, *args, **kwargs):
         current_user = request.user

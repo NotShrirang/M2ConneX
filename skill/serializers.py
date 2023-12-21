@@ -10,13 +10,17 @@ class SkillSerializer(ModelSerializer):
 
 class UserSkillSerializer(ModelSerializer):
     userName = SerializerMethodField()
+    skillName = SerializerMethodField()
 
     class Meta:
         model = UserSkill
-        fields = ['id', 'user', 'skill', 'experience',
+        fields = ['id', 'user', 'skill', 'skillName', 'experience',
                   'userName', 'createdAt', 'updatedAt']
         list_fields = fields
         get_fields = fields
 
     def get_userName(self, instance):
         return instance.user.firstName + " " + instance.user.lastName
+
+    def get_skillName(self, instance):
+        return instance.skill.name

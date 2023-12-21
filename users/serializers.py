@@ -53,11 +53,13 @@ class AlumniPortalUserSerializer(ModelSerializer):
 
 class RecommendUserSerializer(ModelSerializer):
     mutualConnections = SerializerMethodField()
+    isConnected = SerializerMethodField()
 
     class Meta:
         model = AlumniPortalUser
         fields = ['id', 'email', 'firstName', 'lastName',
-                  'department', 'bio', 'profilePicture', 'mutualConnections']
+                  'department', 'bio', 'profilePicture', 'mutualConnections',
+                  'isConnected']
 
     def get_mutualConnections(self, obj):
         current_user_connectionA = self.context['request'].user.userA.filter(
@@ -84,6 +86,16 @@ class RecommendUserSerializer(ModelSerializer):
             mutually_connected_users, many=True)
 
         return serializer.data
+
+    def get_isConnected(self, obj):
+        if Connection.objects.filter(userA=self.context['request'].user, userB=obj, status='accepted', isActive=True).exists(
+        ) or Connection.objects.filter(userB=self.context['request'].user, userA=obj, status='accepted', isActive=True).exists():
+            return 'accepted'
+        elif Connection.objects.filter(userA=self.context['request'].user, userB=obj, status='pending', isActive=True).exists(
+        ) or Connection.objects.filter(userB=self.context['request'].user, userA=obj, status='pending', isActive=True).exists():
+            return 'pending'
+        else:
+            return 'not_connected'
 
 
 class RegisterSerializer(ModelSerializer):

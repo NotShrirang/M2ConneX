@@ -142,15 +142,11 @@ class FeedActionCommentSerializer(ModelSerializer):
 
 class UserActivitySerializer(Serializer):
     def to_representation(self, instance):
-        print("INSTANCE", type(instance), instance, flush=True)
-
         if isinstance(instance, Feed):
             serialized_data = FeedSerializer(
                 instance, context={'request': self.context['request']}).data
-            print("MODEL DATA", serialized_data, flush=True)
             return {"type": "feed", "data": serialized_data}
         elif isinstance(instance, FeedAction):
             serialized_data = FeedActionSerializer(
                 instance, context={'request': self.context['request']}).data
-            print("MODEL DATA", serialized_data, flush=True)
             return {"type": "feed_action", "data": serialized_data}

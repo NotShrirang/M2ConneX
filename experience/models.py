@@ -5,7 +5,8 @@ from users.models import AlumniPortalUser
 
 
 class Experience(CODEBaseModel):
-    user = models.ForeignKey(AlumniPortalUser, on_delete=models.CASCADE, related_name='experiences')
+    user = models.ForeignKey(
+        AlumniPortalUser, on_delete=models.CASCADE, related_name='experiences')
     company = models.CharField(max_length=255)
     designation = models.CharField(max_length=255)
     description = models.TextField()

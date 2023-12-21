@@ -19,16 +19,19 @@ class Skill(CODEBaseModel):
 class UserSkill(CODEBaseModel):
 
     EXPERIENCE_CHOICES = (
-        ('Interested', 'Interested'),
-        ('Beginner', 'Beginner'),
-        ('Intermediate', 'Intermediate'),
-        ('Expert', 'Expert'),
-        ('Gawd', 'Gawd'),
+        ('1', 'Interested'),
+        ('2', 'Beginner'),
+        ('3', 'Intermediate'),
+        ('4', 'Expert'),
+        ('5', 'Gawd'),
     )
 
-    user = models.ForeignKey(AlumniPortalUser, on_delete=models.CASCADE, related_name='skills')
-    skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name='users')
-    experience = models.CharField(max_length=100, null=False, blank=False, choices=EXPERIENCE_CHOICES)
+    user = models.ForeignKey(
+        AlumniPortalUser, on_delete=models.CASCADE, related_name='skills')
+    skill = models.ForeignKey(
+        Skill, on_delete=models.CASCADE, related_name='users')
+    experience = models.CharField(
+        max_length=100, null=False, blank=False, choices=EXPERIENCE_CHOICES)
 
     class Meta:
         ordering = ['-createdAt']
