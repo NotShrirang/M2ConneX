@@ -94,12 +94,18 @@ class AnalyticsCountView(views.APIView):
         analytics_data = {}
         total_data = UserAnalytics.objects.filter(profileUser=current_user).values(
             'analyticsType').annotate(count=models.Count('analyticsType'))
+        total_data = {item['analyticsType']: item['count']
+                      for item in total_data}
         weekly_data = UserAnalytics.objects.filter(profileUser=current_user).annotate(
             week_start=TruncWeek('createdAt')
         ).values('week_start').annotate(count=Count('id')).order_by('week_start')
+        weekly_data = {str(item['week_start']): item['count']
+                       for item in weekly_data}
         monthly_data = UserAnalytics.objects.filter(profileUser=current_user).annotate(
             month_start=TruncMonth('createdAt')
         ).values('month_start').annotate(count=Count('id')).order_by('month_start')
+        monthly_data = {str(item['month_start']): item['count']
+                        for item in monthly_data}
         analytics_data['total'] = total_data
         analytics_data['weekly'] = weekly_data
         analytics_data['monthly'] = monthly_data

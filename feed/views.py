@@ -8,7 +8,8 @@ from feed.serializers import (
     FeedSerializer,
     FeedImageSerializer,
     FeedActionSerializer,
-    FeedActionCommentSerializer
+    FeedActionCommentSerializer,
+    UserActivitySerializer
 )
 from feed.filters import (
     FeedFilter,
@@ -19,10 +20,11 @@ from feed.filters import (
 from connection.models import Connection
 from django.db.models import Q
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import generics, views
+from rest_framework import generics, views, pagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from itertools import chain
 
 from CODE.utils.s3 import upload_image
 from CODE.utils.recommendations import get_feed_recommendation
@@ -404,6 +406,34 @@ class FeedActionCommentView(ModelViewSet):
             return Response({'message': 'You are not authorized to perform this action'}, status=status.HTTP_401_UNAUTHORIZED)
         feedActionComment.delete()
         return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_200_OK)
+
+
+class UserActivityView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated,]
+    pagination_class = pagination.PageNumberPagination
+
+    def list(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not current_user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        feed_action_queryset = FeedAction.objects.filter(user=current_user)
+        feed_queryset = Feed.objects.filter(user=current_user)
+
+        combined_queryset = sorted(
+            chain(feed_queryset, feed_action_queryset),
+            key=lambda instance: instance.createdAt,
+            reverse=True
+        )
+
+        paginated_queryset = self.paginate_queryset(combined_queryset)
+
+        serialized_data = UserActivitySerializer(
+            paginated_queryset, context={'request': request}, many=True).data
+
+        return self.get_paginated_response(serialized_data)
 
 
 class RecommendFeedView(generics.ListAPIView):

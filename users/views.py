@@ -18,7 +18,7 @@ from users.serializers import (
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, pagination
 from django.db import transaction
 from CODE.utils import emails
 
@@ -66,7 +66,8 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 if alumni_serializer.is_valid():
                     alumni_serializer.save()
                     user_data['Alumni'] = alumni_serializer.data
-                    emails.send_welcome_email(name=user_data['firstName'], receiver=user_data['email'])
+                    emails.send_welcome_email(
+                        name=user_data['firstName'], receiver=user_data['email'])
                     return Response(user_data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(alumni_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -81,7 +82,8 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 if student_serializer.is_valid():
                     student_serializer.save()
                     user_data['Student'] = student_serializer.data
-                    emails.send_welcome_email(name=user_data['firstName'], receiver=user_data['email'])
+                    emails.send_welcome_email(
+                        name=user_data['firstName'], receiver=user_data['email'])
                     return Response(user_data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(student_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -94,7 +96,8 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 if faculty_serializer.is_valid():
                     faculty_serializer.save()
                     user_data['Staff'] = faculty_serializer.data
-                    emails.send_welcome_email(name=user_data['firstName'], receiver=user_data['email'])
+                    emails.send_welcome_email(
+                        name=user_data['firstName'], receiver=user_data['email'])
                     return Response(user_data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(faculty_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -102,11 +105,13 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 superAdmin_data = {
                     "user": user_id
                 }
-                superAdmin_serializer = SuperAdminSerializer(data=superAdmin_data)
+                superAdmin_serializer = SuperAdminSerializer(
+                    data=superAdmin_data)
                 if superAdmin_serializer.is_valid():
                     superAdmin_serializer.save()
                     user_data['Super Admin'] = superAdmin_serializer.data
-                    emails.send_welcome_email(name=user_data['firstName'], receiver=user_data['email'])
+                    emails.send_welcome_email(
+                        name=user_data['firstName'], receiver=user_data['email'])
                     return Response(user_data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(superAdmin_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -141,12 +146,31 @@ class AlumniPortalUserLogoutView(generics.GenericAPIView):
 class AlumniPortalUserView(ModelViewSet):
     queryset = AlumniPortalUser.objects.all()
     serializer_class = AlumniPortalUserSerializer
+    pagination_class = pagination.PageNumberPagination
+
+    def list(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({"error": "user is not active"}, status=status.HTTP_400_BAD_REQUEST)
+        if not current_user.isVerified:
+            return Response({"error": "user is not verified"}, status=status.HTTP_400_BAD_REQUEST)
+        page = self.paginate_queryset(self.queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({"error": "user is not active"}, status=status.HTTP_400_BAD_REQUEST)
+        if not current_user.isVerified:
+            return Response({"error": "user is not verified"}, status=status.HTTP_400_BAD_REQUEST)
+        user = AlumniPortalUser.objects.get(id=kwargs['pk'])
+        serializer = AlumniPortalUserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)

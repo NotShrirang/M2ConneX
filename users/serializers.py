@@ -15,13 +15,40 @@ import requests
 from django.db import models
 from connection.models import Connection
 from connection.serializers import ConnectionSerializer
+from skill.serializers import SkillSerializer, UserSkillSerializer
 
 
 class AlumniPortalUserSerializer(ModelSerializer):
+    connections = SerializerMethodField()
+    skills = SerializerMethodField()
+    cityName = SerializerMethodField()
+
     class Meta:
         model = AlumniPortalUser
         fields = ['id', 'email', 'firstName', 'lastName', 'department', 'privilege', 'bio', 'resume', 'profilePicture',
-                  'city', 'phoneNumber', 'createdAt', 'updatedAt', 'isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser']
+                  'city', 'cityName', 'phoneNumber', 'createdAt', 'updatedAt', 'isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'signInMethod', 'connections', 'skills']
+        list_fields = fields
+        get_fields = fields
+
+    def get_connections(self, obj):
+        user_connectionA = obj.userA.filter(
+            status='accepted', isActive=True).values_list('userB', flat=True)
+        user_connectionB = obj.userB.filter(
+            status='accepted', isActive=True).values_list('userA', flat=True)
+
+        connections = set(user_connectionA).union(user_connectionB)
+
+        return len(list(connections))
+
+    def get_skills(self, obj):
+        user_skills = obj.skills.all()
+        serializer = UserSkillSerializer(user_skills, many=True)
+        return serializer.data
+
+    def get_cityName(self, obj):
+        if obj.city:
+            return f"{obj.city.name}, {obj.city.state.name}, {obj.city.state.country.name}"
+        return None
 
 
 class RecommendUserSerializer(ModelSerializer):

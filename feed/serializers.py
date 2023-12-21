@@ -1,5 +1,5 @@
 from feed.models import Feed, FeedImage, FeedAction, FeedActionComment
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import Serializer, ModelSerializer, SerializerMethodField
 
 
 class FeedSerializer(ModelSerializer):
@@ -15,13 +15,14 @@ class FeedSerializer(ModelSerializer):
 
     class Meta:
         model = Feed
-        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'profilePicture', 'isLiked', 'likesCount', 'commentsCount', 'sharesCount', 'images', 'isEditable']
+        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio',
+                  'profilePicture', 'isLiked', 'likesCount', 'commentsCount', 'sharesCount', 'images', 'isEditable']
         list_fields = fields
         get_fields = fields
 
     def get_userName(self, obj):
         return (obj.user.firstName or "") + " " + (obj.user.lastName or "")
-    
+
     def get_userBio(self, obj):
         DEPARTMENTS = {
             "1": "Computer Engineering",
@@ -46,23 +47,22 @@ class FeedSerializer(ModelSerializer):
                 return "MMCOE Alumni Portal User"
         else:
             return obj.user.bio
-        
 
     def get_profilePicture(self, obj):
         return obj.user.profilePicture or ""
-    
+
     def get_isLiked(self, obj):
         return obj.actions.filter(action='LIKE', user=self.context['request'].user).exists()
-    
+
     def get_likesCount(self, obj):
         return obj.actions.filter(action='LIKE').count()
-    
+
     def get_commentsCount(self, obj):
         return obj.actions.filter(action='COMMENT').count()
-    
+
     def get_sharesCount(self, obj):
         return obj.actions.filter(action='SHARE').count()
-    
+
     def get_images(self, obj):
         feed = Feed.objects.get(id=obj.id)
         images = feed.images.all()
@@ -71,14 +71,18 @@ class FeedSerializer(ModelSerializer):
     def get_isEditable(self, obj):
         return obj.user == self.context['request'].user
 
+
 class FeedImageSerializer(ModelSerializer):
     feedName = SerializerMethodField()
 
     class Meta:
         model = FeedImage
-        fields = ['id', 'image', 'coverImage', 'createdAt', 'updatedAt', 'feedName']
-        list_fields = ['id', 'image', 'coverImage', 'createdAt', 'updatedAt', 'feedName']
-        get_fields = ['id', 'image', 'coverImage', 'createdAt', 'updatedAt', 'feedName']
+        fields = ['id', 'image', 'coverImage',
+                  'createdAt', 'updatedAt', 'feedName']
+        list_fields = ['id', 'image', 'coverImage',
+                       'createdAt', 'updatedAt', 'feedName']
+        get_fields = ['id', 'image', 'coverImage',
+                      'createdAt', 'updatedAt', 'feedName']
 
     def get_feedName(self, obj):
         return obj.feed.subject
@@ -86,19 +90,30 @@ class FeedImageSerializer(ModelSerializer):
 
 class FeedActionSerializer(ModelSerializer):
     feedName = SerializerMethodField()
+    feedBody = SerializerMethodField()
     userName = SerializerMethodField()
+    comment = SerializerMethodField()
 
     class Meta:
         model = FeedAction
-        fields = ['id', 'feed', 'action', 'user', 'createdAt', 'updatedAt', 'feedName', 'userName']
-        list_fields = ['id', 'feed', 'action', 'user', 'createdAt', 'updatedAt', 'feedName', 'userName']
-        get_fields = ['id', 'feed', 'action', 'user', 'createdAt', 'updatedAt', 'feedName', 'userName']
+        fields = ['id', 'feed', 'action', 'user',
+                  'createdAt', 'updatedAt', 'feedName', 'feedBody', 'userName', 'comment']
+        list_fields = fields
+        get_fields = fields
 
     def get_feedName(self, obj):
         return obj.feed.subject
 
+    def get_feedBody(self, obj):
+        return obj.feed.body
+
     def get_userName(self, obj):
         return (obj.user.firstName or "") + " " + (obj.user.lastName or "")
+
+    def get_comment(self, obj):
+        if obj.action == 'COMMENT':
+            comment = obj.comments.first()
+            return FeedActionCommentSerializer(comment).data
 
 
 class FeedActionCommentSerializer(ModelSerializer):
@@ -108,9 +123,12 @@ class FeedActionCommentSerializer(ModelSerializer):
 
     class Meta:
         model = FeedActionComment
-        fields = ['id', 'feedAction', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
-        list_fields = ['id', 'feedAction', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
-        get_fields = ['id', 'feedAction', 'comment', 'createdAt', 'updatedAt', 'feedName', 'userName', 'profilePicture']
+        fields = ['id', 'feedAction', 'comment', 'createdAt',
+                  'updatedAt', 'feedName', 'userName', 'profilePicture']
+        list_fields = ['id', 'feedAction', 'comment', 'createdAt',
+                       'updatedAt', 'feedName', 'userName', 'profilePicture']
+        get_fields = ['id', 'feedAction', 'comment', 'createdAt',
+                      'updatedAt', 'feedName', 'userName', 'profilePicture']
 
     def get_feedName(self, obj):
         return obj.feedAction.feed.subject
@@ -120,3 +138,19 @@ class FeedActionCommentSerializer(ModelSerializer):
 
     def get_profilePicture(self, obj):
         return obj.feedAction.user.profilePicture or ""
+
+
+class UserActivitySerializer(Serializer):
+    def to_representation(self, instance):
+        print("INSTANCE", type(instance), instance, flush=True)
+
+        if isinstance(instance, Feed):
+            serialized_data = FeedSerializer(
+                instance, context={'request': self.context['request']}).data
+            print("MODEL DATA", serialized_data, flush=True)
+            return {"type": "feed", "data": serialized_data}
+        elif isinstance(instance, FeedAction):
+            serialized_data = FeedActionSerializer(
+                instance, context={'request': self.context['request']}).data
+            print("MODEL DATA", serialized_data, flush=True)
+            return {"type": "feed_action", "data": serialized_data}
