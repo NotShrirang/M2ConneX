@@ -270,8 +270,18 @@ class RecommendConnectionView(generics.ListAPIView):
         qs = AlumniPortalUser.objects.filter(is_active=True, isVerified=True).exclude(
             id__in=userA_connected).exclude(id__in=userB_connected).exclude(id=current_user.id)
 
-        # qs = qs.filter(Q(id__in=userA_connected) |
-        #                Q(id__in=userB_connected))
+        if not qs.exists():
+            return Response({'message': 'No users to recommend'}, status=status.HTTP_200_OK)
+        if qs.count() == 1:
+            page = self.paginate_queryset(qs)
+            if page is not None:
+                serializer = RecommendUserSerializer(
+                    page, context={'request': request}, many=True)
+                return self.get_paginated_response(serializer.data)
+            else:
+                serializer = RecommendUserSerializer(
+                    qs, context={'request': request}, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
 
         qs, similarity_score = get_user_recommendation(qs, current_user)
 
