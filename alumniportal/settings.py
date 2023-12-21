@@ -7,6 +7,18 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+API_LOG_DIR = os.path.join(LOGS_DIR, "api")
+GUNICORN_LOG_DIR = os.path.join(LOGS_DIR, 'gunicorn')
+CELERY_LOG_DIR = os.path.join(LOGS_DIR, 'celery')
+EXCEPTION_LOG_DIR = os.path.join(LOGS_DIR, "exceptions")
+
+if not os.path.exists(LOGS_DIR):
+    os.mkdir(LOGS_DIR)
+    os.mkdir(API_LOG_DIR)
+    os.mkdir(GUNICORN_LOG_DIR)
+    os.mkdir(CELERY_LOG_DIR)
+    os.mkdir(EXCEPTION_LOG_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -135,6 +147,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
+
+CELERY_BROKER_URL = 'amqp://admin:admin@alumni-portal-rabbitmq'
 
 STATIC_URL = "static/"
 

@@ -45,3 +45,6 @@ typing_extensions==4.8.0
 tzdata==2023.3
 uritemplate==4.1.1
 urllib3==1.26.18
+celery==5.2.7
+flower==1.2.0
+redis==4.4.0

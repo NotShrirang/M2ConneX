@@ -46,6 +46,46 @@ services:
     volumes:
       - alumni-portal-pgadmin:/var/lib/pgadmin
 
+  rabbit-mq:
+    image: rabbitmq:3.7-management
+    restart: always
+    container_name: "alumni-portal-rabbitmq"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      
+  celery:
+    container_name: "alumni-portal-celery"
+    build: .
+    command: celery -A alumniportal worker -l INFO  -E -f /opt/logs/celery/celery.logs
+    volumes:
+      - .:/opt/
+    depends_on:
+      - rabbit-mq
+      - backend
+    environment:
+      -  DJANGO_SETTINGS_MODULE=alumniportal.settings
+
+  flower:
+    container_name: "alumni-portal-flower"
+    build: .
+    command: celery -A alumniportal flower --port=5555
+    image: mher/flower:0.9.7
+    ports:
+      - 5555:5555
+    volumes:
+      - .:/opt/
+    depends_on:
+      - backend
+      - celery
+      - rabbit-mq
+    environment:
+      -  DJANGO_SETTINGS_MODULE=alumniportal.settings
+
 volumes:
+  alumni-portal-backend:
   alumni-portal-pgadmin:
   alumni-portal-db:

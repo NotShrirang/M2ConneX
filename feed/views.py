@@ -28,6 +28,7 @@ from itertools import chain
 
 from CODE.utils.s3 import upload_image
 from CODE.utils.recommendations import get_feed_recommendation
+from CODE.utils.nsfw import text_nsfw_checker
 from analytics.models import UserAnalytics
 from analytics.serializers import UserAnalyticsSerializer
 
@@ -83,31 +84,45 @@ class FeedView(ModelViewSet):
         if serializer.is_valid():
             serializer.save()
             final_data = serializer.data
-            feedId = serializer.data['id']
-            images = request.data.get('images', [])
-            final_image_data = []
-            for image in images:
-                if image == images[0]:
-                    image_data = {
-                        'feed': feedId.replace('"', '').replace("'", ""),
-                        'image': image,
-                        'coverImage': True
-                    }
-                else:
-                    image_data = {
-                        'feed': feedId.replace('"', '').replace("'", ""),
-                        'image': image,
-                        'coverImage': False
-                    }
-                print(image_data)
-                if image_data['feed'] == '' or image_data['feed'] == None:
-                    return Response({'message': 'Feed is required'}, status=status.HTTP_400_BAD_REQUEST)
-                feedImage = FeedImage.objects.create(feed=Feed.objects.get(
-                    id=image_data['feed']), image=image_data['image'], coverImage=image_data['coverImage'])
-                image_serializer = FeedImageSerializer(feedImage)
-                final_image_data.append(image_serializer.data)
-            final_data['images'] = final_image_data
-            return Response(final_data, status=status.HTTP_201_CREATED)
+            feed = Feed.objects.get(id=serializer.data['id'])
+            text = ", ".join(final_data['subject'].split(
+                ";")) + final_data['body']
+            text_nsfw_checker.delay(text, str(feed.id), 'Feed')
+            try:
+                feedId = serializer.data['id']
+                images = request.data.get('images', [])
+                final_image_data = []
+                if images == [] or images is None:
+                    return Response(final_data, status=status.HTTP_201_CREATED)
+                for image in images:
+                    if image == images[0]:
+                        image_data = {
+                            'feed': feedId.replace('"', '').replace("'", ""),
+                            'image': image,
+                            'coverImage': True
+                        }
+                    else:
+                        image_data = {
+                            'feed': feedId.replace('"', '').replace("'", ""),
+                            'image': image,
+                            'coverImage': False
+                        }
+                    if image_data['feed'] == '' or image_data['feed'] == None:
+                        return Response({'message': 'Feed is required'}, status=status.HTTP_400_BAD_REQUEST)
+                    feedObj = Feed.objects.filter(id=image_data['feed'])
+                    if not feedObj.exists():
+                        return Response({'message': 'NSFW Content Found!'}, status=status.HTTP_400_BAD_REQUEST)
+                    feedObj = feedObj.first()
+                    feedImage = FeedImage.objects.create(
+                        feed=feedObj, image=image_data['image'], coverImage=image_data['coverImage'])
+                    image_serializer = FeedImageSerializer(feedImage)
+                    final_image_data.append(image_serializer.data)
+                final_data['images'] = final_image_data
+                return Response(final_data, status=status.HTTP_201_CREATED)
+            except Feed.DoesNotExist:
+                return Response({'message': 'NSFW Content Found!'}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
