@@ -17,7 +17,7 @@ from users.serializers import (
 )
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, views
 from rest_framework import generics, permissions, pagination
 from django.db import transaction
 from CODE.utils import emails
@@ -31,6 +31,17 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
             user = request.data
             if "privilege" not in request.data:
                 return Response({"error": "privilege is required"}, status=status.HTTP_400_BAD_REQUEST)
+            if "email" not in request.data:
+                return Response({"error": "email is required"}, status=status.HTTP_400_BAD_REQUEST)
+            if "password" not in request.data:
+                return Response({"error": "password is required"}, status=status.HTTP_400_BAD_REQUEST)
+            if "firstName" not in request.data:
+                return Response({"error": "firstName is required"}, status=status.HTTP_400_BAD_REQUEST)
+            if "lastName" not in request.data:
+                return Response({"error": "lastName is required"}, status=status.HTTP_400_BAD_REQUEST)
+            email = request.data['email']
+            if AlumniPortalUser.objects.filter(email=email).exists():
+                return Response({"error": "Email address already exists."}, status=status.HTTP_400_BAD_REQUEST)
             privilege = request.data['privilege']
             if privilege in ["Alumni", "Student"]:
                 if "batch" not in request.data:
@@ -141,6 +152,20 @@ class AlumniPortalUserLogoutView(generics.GenericAPIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmailExistanceCheckerView(views.APIView):
+    serializer_class = LoginSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        email = request.data.get('email', None)
+        if email is None:
+            return Response({"error": "email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if AlumniPortalUser.objects.filter(email=email).exists():
+            return Response({"exists": True}, status=status.HTTP_200_OK)
+        else:
+            return Response({"exists": False}, status=status.HTTP_200_OK)
 
 
 class AlumniPortalUserView(ModelViewSet):

@@ -7,6 +7,7 @@ from users.views import (
     AlumniPortalUserRegisterView,
     AlumniPortalUserLoginView,
     AlumniPortalUserLogoutView,
+    EmailExistanceCheckerView,
     AlumniView,
     StudentView,
     FacultyView,
@@ -26,6 +27,7 @@ class HomeView(APIView):
                 '/login/',
                 '/register/',
                 '/logout/',
+                '/check-email/',
                 '/token/refresh/',
                 '/users/',
                 '/students/',
@@ -49,5 +51,6 @@ urlpatterns = [
     path('register/', AlumniPortalUserRegisterView.as_view(), name="register"),
     path('login/', AlumniPortalUserLoginView.as_view(), name="login"),
     path('logout/', AlumniPortalUserLogoutView.as_view(), name="logout"),
+    path('/check-email/', EmailExistanceCheckerView.as_view(), name='check-email'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ] + router.urls
