@@ -451,8 +451,9 @@ class UserActivityView(generics.RetrieveAPIView):
         if not user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        feed_action_queryset = FeedAction.objects.filter(user=user)
-        feed_queryset = Feed.objects.filter(user=user)
+        feed_action_queryset = FeedAction.objects.filter(
+            user=user, isActive=True)
+        feed_queryset = Feed.objects.filter(user=user, isActive=True)
 
         combined_queryset = sorted(
             chain(feed_queryset, feed_action_queryset),
