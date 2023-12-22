@@ -159,7 +159,7 @@ class EmailExistanceCheckerView(views.APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, *args, **kwargs):
-        email = request.data.get('email', None)
+        email = request.query_params.get('email', None)
         if email is None:
             return Response({"error": "email is required"}, status=status.HTTP_400_BAD_REQUEST)
         if AlumniPortalUser.objects.filter(email=email).exists():

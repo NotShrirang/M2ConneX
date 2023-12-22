@@ -93,7 +93,8 @@ class FeedView(ModelViewSet):
                 feedId = serializer.data['id']
                 images = request.data.get('images', [])
                 final_image_data = []
-                if images == [] or images is None:
+                print("IMAGES", images, flush=True)
+                if images == [] or images is None or images == [''] or images == [""]:
                     return Response(final_data, status=status.HTTP_201_CREATED)
                 for image in images:
                     if image == images[0]:
@@ -499,7 +500,9 @@ class RecommendFeedView(generics.ListAPIView):
         qs = Feed.objects.filter(isActive=True)
         qs = qs.filter(Q(user__in=userA_connected) | Q(
             user__in=userB_connected) | Q(isPublic=True))
-        qs, similarity_score = get_feed_recommendation(qs, current_user)
+
+        if qs.count() > 10:
+            qs, similarity_score = get_feed_recommendation(qs, current_user)
         # Paginate the queryset
         page = self.paginate_queryset(qs)
         if page is not None:
