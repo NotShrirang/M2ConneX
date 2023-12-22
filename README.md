@@ -12,6 +12,7 @@ DB_HOST = *****
 DB_PORT = *****
 EMAIL = *****
 EMAIL_PASSWORD = *****
+TEXT_NSFW_TOKEN = *****
 ```
 
 ## To run docker container:
