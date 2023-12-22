@@ -64,7 +64,8 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             user = AlumniPortalUser.objects.get(email=user['email'])
             user_id = user.id
-            user_data = AlumniPortalUserSerializer(user).data
+            user_data = AlumniPortalUserSerializer(
+                user, context={'request': request}).data
             user_data['id'] = user_id
             if privilege == "Alumni":
                 alumni_data = {
@@ -194,7 +195,8 @@ class AlumniPortalUserView(ModelViewSet):
         if not current_user.isVerified:
             return Response({"error": "user is not verified"}, status=status.HTTP_400_BAD_REQUEST)
         user = AlumniPortalUser.objects.get(id=kwargs['pk'])
-        serializer = AlumniPortalUserSerializer(user)
+        serializer = AlumniPortalUserSerializer(
+            user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):

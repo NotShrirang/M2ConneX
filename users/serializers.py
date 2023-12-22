@@ -22,11 +22,12 @@ class AlumniPortalUserSerializer(ModelSerializer):
     connections = SerializerMethodField()
     skills = SerializerMethodField()
     cityName = SerializerMethodField()
+    isConnected = SerializerMethodField()
 
     class Meta:
         model = AlumniPortalUser
         fields = ['id', 'email', 'firstName', 'lastName', 'department', 'privilege', 'bio', 'resume', 'profilePicture',
-                  'city', 'cityName', 'phoneNumber', 'createdAt', 'updatedAt', 'isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'signInMethod', 'connections', 'skills']
+                  'city', 'cityName', 'phoneNumber', 'createdAt', 'updatedAt', 'isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'signInMethod', 'connections', 'skills', 'isConnected']
         list_fields = fields
         get_fields = fields
 
@@ -49,6 +50,16 @@ class AlumniPortalUserSerializer(ModelSerializer):
         if obj.city:
             return f"{obj.city.name}, {obj.city.state.name}, {obj.city.state.country.name}"
         return None
+
+    def get_isConnected(self, obj):
+        if Connection.objects.filter(userA=self.context['request'].user, userB=obj, status='accepted', isActive=True).exists(
+        ) or Connection.objects.filter(userB=self.context['request'].user, userA=obj, status='accepted', isActive=True).exists():
+            return 'accepted'
+        elif Connection.objects.filter(userA=self.context['request'].user, userB=obj, status='pending', isActive=True).exists(
+        ) or Connection.objects.filter(userB=self.context['request'].user, userA=obj, status='pending', isActive=True).exists():
+            return 'pending'
+        else:
+            return 'not_connected'
 
 
 class RecommendUserSerializer(ModelSerializer):
@@ -83,7 +94,7 @@ class RecommendUserSerializer(ModelSerializer):
             id__in=mutual_connections)
 
         serializer = AlumniPortalUserSerializer(
-            mutually_connected_users, many=True)
+            mutually_connected_users, many=True, context=self.context)
 
         return serializer.data
 
