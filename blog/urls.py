@@ -1,10 +1,10 @@
 from rest_framework import routers
-from .views import BlogViewSet, BlogCommentViewSet, BlogActionViewSet
+from .views import BlogView, BlogCommentView, BlogActionView
 
 router = routers.DefaultRouter()
-router.register('blog', BlogViewSet, basename='blog')
-router.register('blog-comment', BlogCommentViewSet, basename='blog-comment')
-router.register('blog-action', BlogActionViewSet, basename='blog-action')
+router.register('blog', BlogView, basename='blog')
+router.register('blog-comment', BlogCommentView, basename='blog-comment')
+router.register('blog-action', BlogActionView, basename='blog-action')
 
 urlpatterns = []
 urlpatterns += router.urls

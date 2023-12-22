@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "event",
     "experience",
     "feed",
+    "notification",
     "opportunity",
     "skill",
     "users",
