@@ -18,6 +18,7 @@ from feed.filters import (
     FeedImageFilter
 )
 from connection.models import Connection
+from users.models import AlumniPortalUser
 from django.db.models import Q
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import generics, views, pagination
@@ -423,20 +424,34 @@ class FeedActionCommentView(ModelViewSet):
         return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_200_OK)
 
 
-class UserActivityView(generics.ListAPIView):
+class UserActivityView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated,]
     pagination_class = pagination.PageNumberPagination
     page_size = 10
 
-    def list(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
         current_user = request.user
         if not current_user.is_active:
             return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
         if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        feed_action_queryset = FeedAction.objects.filter(user=current_user)
-        feed_queryset = Feed.objects.filter(user=current_user)
+        user = kwargs.get('userId', None)
+        if user is None:
+            return Response({'message': 'userId is required'}, status=status.HTTP_400_BAD_REQUEST)
+        user = AlumniPortalUser.objects.filter(id=user)
+        if user.exists():
+            user = user.first()
+        else:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        feed_action_queryset = FeedAction.objects.filter(user=user)
+        feed_queryset = Feed.objects.filter(user=user)
 
         combined_queryset = sorted(
             chain(feed_queryset, feed_action_queryset),

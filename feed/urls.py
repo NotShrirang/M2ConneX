@@ -37,7 +37,7 @@ router.register('feed-action-comment', FeedActionCommentView,
 
 urlpatterns = [
     path('', HomeView.as_view()),
-    path('user-activity/', UserActivityView.as_view()),
+    path('user-activity/<uuid:userId>/', UserActivityView.as_view()),
     path('recommend-feed/', RecommendFeedView.as_view()),
     path('feed-action-dislike/', FeedActionDislikeView.as_view())
 ] + router.urls
