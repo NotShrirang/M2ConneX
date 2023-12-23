@@ -61,4 +61,5 @@ urlpatterns = [
     path("connection/", include("connection.urls")),
     path("blog/", include("blog.urls")),
     path("analytics/", include("analytics.urls")),
+    path("notification/", include("notification.urls")),
 ]
