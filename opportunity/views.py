@@ -22,7 +22,7 @@ from rest_framework import generics
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, pagination
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -47,13 +47,17 @@ class OpportunityView(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             return super().list(request, *args, **kwargs)
         else:
             return Response({'error': 'You are not authorized to view opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
     def retrieve(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             qs = Opportunity.objects.filter(id=kwargs['pk'], isActive=True)
             if qs.exists():
@@ -66,6 +70,8 @@ class OpportunityView(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Alumni':
                 data = request.data
@@ -84,9 +90,11 @@ class OpportunityView(ModelViewSet):
                 return Response({'error': 'You are not authorized to create opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'You are not authorized to create opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
     def update(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Alumni':
                 opportunity = Opportunity.objects.get(id=kwargs['id'])
@@ -98,9 +106,11 @@ class OpportunityView(ModelViewSet):
                 return Response({'error': 'You are not authorized to update opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'You are not authorized to update opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
     def partial_update(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Alumni':
                 opportunity = Opportunity.objects.get(id=kwargs['id'])
@@ -112,9 +122,11 @@ class OpportunityView(ModelViewSet):
                 return Response({'error': 'You are not authorized to update opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'You are not authorized to update opportunities'}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
     def destroy(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Alumni' or user.is_superuser or user.privilege == 'Super Admin':
                 opportunity = Opportunity.objects.get(id=kwargs['id'])
@@ -140,17 +152,22 @@ class OpportunitySkillView(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             qs = self.filter_queryset(self.queryset.filter(isActive=True))
             serializer = OpportunitySkillSerializer(qs, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'You are not authorized to view opportunity skills'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
     def retrieve(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
-            qs = OpportunitySkill.objects.filter(id=kwargs['pk'], isActive=True)
+            qs = OpportunitySkill.objects.filter(
+                id=kwargs['pk'], isActive=True)
             if qs.exists():
                 serializer = OpportunitySkillSerializer(qs.first())
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -158,12 +175,15 @@ class OpportunitySkillView(ModelViewSet):
                 return Response({'error': 'Opportunity skill not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'error': 'You are not authorized to view opportunity skills'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
     def create(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Alumni':
-                opportunity = Opportunity.objects.get(id=request.data['opportunity_id'])
+                opportunity = Opportunity.objects.get(
+                    id=request.data['opportunity_id'])
                 if opportunity.alumni == user:
                     super().create(request, *args, **kwargs)
                 else:
@@ -172,12 +192,15 @@ class OpportunitySkillView(ModelViewSet):
                 return Response({'error': 'You are not authorized to create opportunity skills'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'You are not authorized to create opportunity skills'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
     def update(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Alumni':
-                opportunity = Opportunity.objects.get(id=request.data['opportunity_id'])
+                opportunity = Opportunity.objects.get(
+                    id=request.data['opportunity_id'])
                 if opportunity.alumni == user:
                     super().update(request, *args, **kwargs)
                 else:
@@ -186,12 +209,15 @@ class OpportunitySkillView(ModelViewSet):
                 return Response({'error': 'You are not authorized to update opportunity skills'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'You are not authorized to update opportunity skills'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
     def partial_update(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Alumni':
-                opportunity = Opportunity.objects.get(id=request.data['opportunity_id'])
+                opportunity = Opportunity.objects.get(
+                    id=request.data['opportunity_id'])
                 if opportunity.alumni == user:
                     super().update(request, *args, **kwargs)
                 else:
@@ -200,12 +226,15 @@ class OpportunitySkillView(ModelViewSet):
                 return Response({'error': 'You are not authorized to update opportunity skills'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'You are not authorized to update opportunity skills'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
     def destroy(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Alumni' or user.is_superuser or user.privilege == 'Super Admin':
-                opportunity = Opportunity.objects.get(id=request.data['opportunity_id'])
+                opportunity = Opportunity.objects.get(
+                    id=request.data['opportunity_id'])
                 if opportunity.alumni == user:
                     skill = OpportunitySkill.objects.get(id=kwargs['id'])
                     skill.isActive = False
@@ -225,22 +254,28 @@ class OpportunityApplicationView(ModelViewSet):
     permission_classes = [IsAuthenticated]
     filterset_class = OpportunityApplicationFilter
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ['opportunity__name', 'applicant__user__firstName', 'applicant__user__lastName', 'status']
+    search_fields = ['opportunity__name', 'applicant__firstName',
+                     'applicant__lastName', 'status']
 
     def list(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             alumni = Alumni.objects.filter(user=user.id)
             if alumni.exists():
-                application = self.filter_queryset(self.queryset.filter(isActive=True))
-                application = application.filter(opportunity__alumni=alumni.first())
+                application = self.filter_queryset(
+                    self.queryset.filter(isActive=True))
+                application = application.filter(
+                    opportunity__alumni=alumni.first())
                 if application.exists():
                     return Response(OpportunityApplicationSerializer(application, many=True).data, status=status.HTTP_200_OK)
                 else:
-                    return Response({'error': 'Opportunity applications not found.'}, status=status.HTTP_404_NOT_FOUND) 
+                    return Response({'error': 'Opportunity applications not found.'}, status=status.HTTP_404_NOT_FOUND)
             student = Student.objects.filter(user=user.id)
             if student.exists():
-                application = self.filter_queryset(self.queryset.filter(isActive=True))
+                application = self.filter_queryset(
+                    self.queryset.filter(isActive=True))
                 application = application.filter(applicant=student.first())
                 if application.exists():
                     return Response(OpportunityApplicationSerializer(application, many=True).data, status=status.HTTP_200_OK)
@@ -248,11 +283,14 @@ class OpportunityApplicationView(ModelViewSet):
                     return Response({'error': 'Opportunity applications not found.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'error': 'You are not authorized to view opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
     def retrieve(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
-            application = OpportunityApplication.objects.filter(id=kwargs['pk'], isActive=True)
+            application = OpportunityApplication.objects.filter(
+                id=kwargs['pk'], isActive=True)
             if application.exists():
                 if application.first().opportunity.alumni == user or application.first().applicant == user:
                     return Response(OpportunityApplicationSerializer(application.first()).data, status=status.HTTP_200_OK)
@@ -265,6 +303,8 @@ class OpportunityApplicationView(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Student':
                 return super().create(request, *args, **kwargs)
@@ -275,11 +315,15 @@ class OpportunityApplicationView(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Student' or user.is_superuser:
-                application = OpportunityApplication.objects.get(id=kwargs['id'])
+                application = OpportunityApplication.objects.get(
+                    id=kwargs['id'])
                 if application.applicant == user:
-                    serializer = OpportunityApplicationSerializer(data=request.data)
+                    serializer = OpportunityApplicationSerializer(
+                        data=request.data)
                     if serializer.is_valid():
                         serializer.update(application, serializer.data)
                         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -291,14 +335,18 @@ class OpportunityApplicationView(ModelViewSet):
                 return Response({'error': 'You are not authorized to update opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'You are not authorized to update opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
     def partial_update(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Student' or user.is_superuser:
-                application = OpportunityApplication.objects.get(id=kwargs['id'])
+                application = OpportunityApplication.objects.get(
+                    id=kwargs['id'])
                 if application.applicant == user:
-                    serializer = OpportunityApplicationSerializer(data=request.data)
+                    serializer = OpportunityApplicationSerializer(
+                        data=request.data)
                     if serializer.is_valid():
                         serializer.update(application, serializer.data)
                         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -310,12 +358,15 @@ class OpportunityApplicationView(ModelViewSet):
                 return Response({'error': 'You are not authorized to update opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'You are not authorized to update opportunity applications'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
     def destroy(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if user.privilege == 'Student' or user.is_superuser or user.privilege == 'Super Admin':
-                application = OpportunityApplication.objects.get(id=kwargs['id'])
+                application = OpportunityApplication.objects.get(
+                    id=kwargs['id'])
                 application.isActive = False
                 application.save()
                 return Response({'message': 'Opportunity application deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
@@ -328,9 +379,12 @@ class OpportunityApplicationView(ModelViewSet):
 class AcceptOpportunityApplication(APIView):
     def post(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if application.opportunity.alumni == user or user.is_superuser:
-                application = OpportunityApplication.objects.get(id=request.data['application_id'])
+                application = OpportunityApplication.objects.get(
+                    id=request.data['application_id'])
                 application.status = 'ACCEPTED'
                 application.save()
                 # TODO: Send email to applicant
@@ -344,9 +398,12 @@ class AcceptOpportunityApplication(APIView):
 class RejectOpportunityApplication(APIView):
     def post(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         if user.is_active:
             if application.opportunity.alumni == user or user.is_superuser:
-                application = OpportunityApplication.objects.get(id=request.data['application_id'])
+                application = OpportunityApplication.objects.get(
+                    id=request.data['application_id'])
                 application.status = 'REJECTED'
                 application.save()
                 # TODO: Send email to applicant
@@ -361,23 +418,30 @@ class RecommendOpportunityView(generics.ListAPIView):
     serializer_class = OpportunitySerializer
     queryset = Opportunity.objects.all()
     filterset_class = OpportunityFilter
+    pagination_class = pagination.PageNumberPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ['name', 'description', 'companyName', 'location', 'workMode', 'skills__skill__name']
+    search_fields = ['name', 'description', 'companyName',
+                     'location', 'workMode', 'skills__skill__name']
 
     def list(self, request, *args, **kwargs):
         user = request.user
+        if not user.isVerified:
+            return Response({'error': 'You are not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         search_query = request.GET.get('search', '')
         if user.is_active:
             qs = self.filter_queryset(self.queryset).filter(isActive=True)
-            qs = qs.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query) | Q(companyName__icontains=search_query))
+            qs = qs.filter(Q(name__icontains=search_query) | Q(
+                description__icontains=search_query) | Q(companyName__icontains=search_query))
             final_qs = []
             for opportunity in qs:
                 user_skills: QuerySet = user.skills.all()
                 if user_skills.count() == 0:
-                    serializer = OpportunitySerializer(self.queryset.all(), many=True)
+                    serializer = OpportunitySerializer(
+                        self.queryset.all(), many=True)
                     return Response({'error': 'You have not added any skills', 'data': serializer.data}, status=status.HTTP_400_BAD_REQUEST)
                 opportunity_skills = opportunity.skills
-                intersected_skills = opportunity_skills.filter(skill__name__in=user_skills.values_list('skill__name', flat=True))
+                intersected_skills = opportunity_skills.filter(
+                    skill__name__in=user_skills.values_list('skill__name', flat=True))
                 serializer = OpportunitySerializer(opportunity)
                 data = serializer.data
                 if opportunity_skills.count() > 0:
@@ -385,9 +449,15 @@ class RecommendOpportunityView(generics.ListAPIView):
                     data['matchRatio'] = ratio
                 else:
                     data['matchRatio'] = 0
-                data['matchedSkills'] = intersected_skills.values_list('skill__name', flat=True)
+                data['matchedSkills'] = intersected_skills.values_list(
+                    'skill__name', flat=True)
                 if intersected_skills.count() > 0:
                     final_qs.append(data)
+            final_qs = sorted(
+                final_qs, key=lambda x: x['matchRatio'], reverse=True)
+            page = self.paginate_queryset(final_qs)
+            if page is not None:
+                return self.get_paginated_response(page)
             return Response(final_qs, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'You are not authorized to view opportunities'}, status=status.HTTP_401_UNAUTHORIZED)

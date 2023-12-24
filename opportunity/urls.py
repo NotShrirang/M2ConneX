@@ -11,6 +11,7 @@ from rest_framework.routers import SimpleRouter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+
 class HomeView(APIView):
     def get(self, request):
         return Response({
@@ -25,14 +26,19 @@ class HomeView(APIView):
             ]
         })
 
+
 router = SimpleRouter()
 router.register('opportunity', OpportunityView, basename='opportunity')
-router.register('opportunity-skill', OpportunitySkillView, basename='opportunity-skill')
-router.register('opportunity-application', OpportunityApplicationView, basename='opportunity-application')
+router.register('opportunity-skill', OpportunitySkillView,
+                basename='opportunity-skill')
+router.register('opportunity-application',
+                OpportunityApplicationView, basename='opportunity-application')
 
 urlpatterns = [
     path('', HomeView.as_view()),
-    path('accept-opportunity-application/', AcceptOpportunityApplication.as_view()),
-    path('reject-opportunity-application/', RejectOpportunityApplication.as_view()),
+    path('accept-opportunity-application/',
+         AcceptOpportunityApplication.as_view()),
+    path('reject-opportunity-application/',
+         RejectOpportunityApplication.as_view()),
     path('recommend-opportunity/', RecommendOpportunityView.as_view())
 ] + router.urls

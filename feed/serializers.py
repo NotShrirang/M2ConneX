@@ -1,11 +1,13 @@
 from feed.models import Feed, FeedImage, FeedAction, FeedActionComment
 from rest_framework.serializers import Serializer, ModelSerializer, SerializerMethodField
+from connection.models import Connection
 
 
 class FeedSerializer(ModelSerializer):
     userName = SerializerMethodField()
     profilePicture = SerializerMethodField()
     userBio = SerializerMethodField()
+    isUserConnected = SerializerMethodField()
     isLiked = SerializerMethodField()
     likesCount = SerializerMethodField()
     commentsCount = SerializerMethodField()
@@ -15,7 +17,7 @@ class FeedSerializer(ModelSerializer):
 
     class Meta:
         model = Feed
-        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio',
+        fields = ['id', 'subject', 'body', 'user', 'isPublic', 'createdAt', 'updatedAt', 'userName', 'userBio', 'isUserConnected',
                   'profilePicture', 'isLiked', 'likesCount', 'commentsCount', 'sharesCount', 'images', 'isEditable']
         list_fields = fields
         get_fields = fields
@@ -47,6 +49,16 @@ class FeedSerializer(ModelSerializer):
                 return "MMCOE Alumni Portal User"
         else:
             return obj.user.bio
+
+    def get_isUserConnected(self, obj):
+        if Connection.objects.filter(userA=self.context['request'].user, userB=obj.user, status='accepted', isActive=True).exists(
+        ) or Connection.objects.filter(userB=self.context['request'].user, userA=obj.user, status='accepted', isActive=True).exists():
+            return 'accepted'
+        elif Connection.objects.filter(userA=self.context['request'].user, userB=obj.user, status='pending', isActive=True).exists(
+        ) or Connection.objects.filter(userB=self.context['request'].user, userA=obj.user, status='pending', isActive=True).exists():
+            return 'pending'
+        else:
+            return 'not_connected'
 
     def get_profilePicture(self, obj):
         return obj.user.profilePicture or ""

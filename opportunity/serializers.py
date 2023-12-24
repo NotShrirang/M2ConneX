@@ -11,12 +11,13 @@ class OpportunitySerializer(ModelSerializer):
     alumniName = SerializerMethodField()
     profilePicture = SerializerMethodField()
     requiredSkills = SerializerMethodField()
+    hasApplied = SerializerMethodField()
 
     class Meta:
         model = Opportunity
         fields = [
             'id',
-            'name', 
+            'name',
             'description',
             'payPerMonth',
             'isPaid',
@@ -45,6 +46,9 @@ class OpportunitySerializer(ModelSerializer):
     def get_requiredSkills(self, instance):
         return OpportunitySkillSerializer(instance.skills.all(), many=True).data
 
+    def get_hasApplied(self, instance):
+        return OpportunityApplication.objects.filter(opportunity=instance, applicant=self.context['request'].user).exists()
+
 
 class OpportunitySkillSerializer(ModelSerializer):
     skillName = SerializerMethodField()
@@ -52,7 +56,8 @@ class OpportunitySkillSerializer(ModelSerializer):
 
     class Meta:
         model = OpportunitySkill
-        fields = ['id', 'opportunity', 'skill', 'createdAt', 'updatedAt', 'skillName', 'opportunityName']
+        fields = ['id', 'opportunity', 'skill', 'createdAt',
+                  'updatedAt', 'skillName', 'opportunityName']
         list_fields = fields
         get_fields = fields
 
@@ -61,7 +66,7 @@ class OpportunitySkillSerializer(ModelSerializer):
 
     def get_opportunityName(self, instance):
         return instance.opportunity.name
-    
+
 
 class OpportunityApplicationSerializer(ModelSerializer):
     applicantDetails = SerializerMethodField()
@@ -69,18 +74,19 @@ class OpportunityApplicationSerializer(ModelSerializer):
 
     class Meta:
         model = OpportunityApplication
-        fields = ['id', 'opportunity', 'applicant', 'about', 'status', 'createdAt', 'updatedAt', 'applicantDetails', 'opportunityDetails']
+        fields = ['id', 'opportunity', 'applicant', 'about', 'status',
+                  'createdAt', 'updatedAt', 'applicantDetails', 'opportunityDetails']
         list_fields = fields
         get_fields = fields
 
     def get_applicantDetails(self, instance):
         data = {
-            'name': instance.applicant.user.firstName + " " + instance.applicant.user.lastName,
-            'email': instance.applicant.user.email,
-            'resume': instance.applicant.user.resume,
-            'phone': instance.applicant.user.phoneNumber,
-            'location': instance.applicant.user.city,
-            'profilePicture': instance.applicant.user.profilePicture
+            'name': instance.applicant.firstName + " " + instance.applicant.lastName,
+            'email': instance.applicant.email,
+            'resume': instance.applicant.resume,
+            'phone': instance.applicant.phoneNumber,
+            'location': instance.applicant.city,
+            'profilePicture': instance.applicant.profilePicture
         }
         return data
 

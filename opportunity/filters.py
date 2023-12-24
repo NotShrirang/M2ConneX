@@ -29,7 +29,7 @@ class OpportunityApplicationFilter(CODEDateFilter):
         fields = {
             'opportunity__name': ['exact'],
             'opportunity__companyName': ['exact', 'icontains'],
-            'applicant__user__email': ['exact', 'icontains'],
+            'applicant__email': ['exact', 'icontains'],
             'status': ['exact'],
             'about': ['exact', 'icontains'],
         }

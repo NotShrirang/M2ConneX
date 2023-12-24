@@ -6,13 +6,14 @@ from users.models import (
     SuperAdmin,
     Blogger
 )
+import requests
 from django.contrib import auth
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.password_validation import validate_password
+from django.db import models
 from rest_framework.serializers import ModelSerializer, CharField, SerializerMethodField, Serializer, ValidationError
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-from django.contrib.auth.password_validation import validate_password
-import requests
-from django.db import models
 from connection.models import Connection
 from connection.serializers import ConnectionSerializer
 from skill.serializers import SkillSerializer, UserSkillSerializer
@@ -52,6 +53,8 @@ class AlumniPortalUserSerializer(ModelSerializer):
         return None
 
     def get_isConnected(self, obj):
+        if self.context['request'].user == AnonymousUser():
+            return 'not_connected'
         if Connection.objects.filter(userA=self.context['request'].user, userB=obj, status='accepted', isActive=True).exists(
         ) or Connection.objects.filter(userB=self.context['request'].user, userA=obj, status='accepted', isActive=True).exists():
             return 'accepted'
