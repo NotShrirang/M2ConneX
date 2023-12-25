@@ -10,17 +10,17 @@ from CODE.filters import CODEDateFilter
 class OpportunityFilter(CODEDateFilter):
     class Meta:
         model = Opportunity
-        fields = [
-            'createdAt',
-            'updatedAt',
-            'payPerMonth',
-            'isPaid',
-            'type',
-            'companyName',
-            'workMode',
-            'startDate',
-            'endDate',
-        ]
+        fields = {
+            'createdAt': ['exact'],
+            'updatedAt': ['exact'],
+            'payPerMonth': ['exact'],
+            'isPaid': ['exact'],
+            'type': ['exact'],
+            'companyName': ['exact', 'icontains'],
+            'workMode': ['exact'],
+            'startDate': ['exact'],
+            'endDate': ['exact'],
+        }
 
 
 class OpportunityApplicationFilter(CODEDateFilter):

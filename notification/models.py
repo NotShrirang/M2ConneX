@@ -9,12 +9,14 @@ class Notification(CODEBaseModel):
         ('EVENT', 'EVENT'),
         ('CONNECTION_REQUEST', 'CONNECTION_REQUEST'),
         ('CONNECTION_ACCEPTED', 'CONNECTION_ACCEPTED'),
-        ('OPPORTUNITY', 'OPPORTUNITY'),
+        ('OPPORTUNITY_APPLICATION', 'OPPORTUNITY_APPLICATION'),
+        ('OPPORTUNITY_APPLICATION_ACCEPTED', 'OPPORTUNITY_APPLICATION_ACCEPTED'),
+        ('OPPORTUNITY_APPLICATION_REJECTED', 'OPPORTUNITY_APPLICATION_REJECTED'),
         ('LIKE', 'LIKE'),
         ('COMMENT', 'COMMENT'),
     )
 
-    title = models.CharField(max_length=100, null=False)
+    message = models.CharField(max_length=100, null=False)
     link = models.CharField(max_length=300, null=False)
     notificationType = models.CharField(
         max_length=100, choices=NOTIFICATION_TYPE_CHOICES, null=False)
@@ -30,4 +32,4 @@ class Notification(CODEBaseModel):
         managed = True
 
     def __str__(self):
-        return self.title + ' - ' + self.user.email
+        return self.message[:30] + ' - ' + self.user.email

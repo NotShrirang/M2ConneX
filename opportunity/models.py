@@ -24,8 +24,8 @@ class Opportunity(CODEBaseModel):
     description = models.TextField(null=False, blank=False)
     payPerMonth = models.IntegerField(null=True, blank=True)
     isPaid = models.BooleanField(null=False, blank=False, default=True)
-    alumni = models.ForeignKey(
-        Alumni, on_delete=models.CASCADE, related_name='opportunities')
+    user = models.ForeignKey(
+        AlumniPortalUser, on_delete=models.CASCADE, related_name='opportunities')
     type = models.CharField(max_length=100, null=False,
                             blank=False, choices=OPPORTUNITY_CHOICES)
     companyName = models.CharField(max_length=100, null=False, blank=False)
@@ -84,4 +84,4 @@ class OpportunityApplication(CODEBaseModel):
         verbose_name_plural = "Opportunity Applications"
 
     def __str__(self):
-        return self.opportunity.name + ' - ' + self.applicant.user.email
+        return self.opportunity.name + ' - ' + self.applicant.email

@@ -15,7 +15,7 @@ class OpportunityAdmin(admin.ModelAdmin):
         'description',
         'payPerMonth',
         'isPaid',
-        'alumni',
+        'user',
         'type',
         'companyName',
         'startDate',
@@ -27,7 +27,7 @@ class OpportunityAdmin(admin.ModelAdmin):
         'createdAt',
         'updatedAt',
         'isActive',
-        'alumni',
+        'user',
         'startDate',
         'endDate',
     )

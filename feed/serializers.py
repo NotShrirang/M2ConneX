@@ -137,10 +137,8 @@ class FeedActionCommentSerializer(ModelSerializer):
         model = FeedActionComment
         fields = ['id', 'feedAction', 'comment', 'createdAt',
                   'updatedAt', 'feedName', 'userName', 'profilePicture']
-        list_fields = ['id', 'feedAction', 'comment', 'createdAt',
-                       'updatedAt', 'feedName', 'userName', 'profilePicture']
-        get_fields = ['id', 'feedAction', 'comment', 'createdAt',
-                      'updatedAt', 'feedName', 'userName', 'profilePicture']
+        list_fields = fields
+        get_fields = fields
 
     def get_feedName(self, obj):
         return obj.feedAction.feed.subject

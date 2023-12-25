@@ -104,6 +104,9 @@ def get_user_recommendation(qs, current_user):
         user_attributes.append(dept + "-:-" + bio + "-:-" +
                                skills + "-:-" + final_feed + "-:-" + final_feedAction)
 
+    if len(user_attributes) < 6:
+        return user_objects, []
+
     # Get attributes of the current user
     current_user_attributes = []
 

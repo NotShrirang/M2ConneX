@@ -13,6 +13,7 @@ from connection.filters import ConnectionFilter
 from users.models import AlumniPortalUser
 from users.serializers import AlumniPortalUserSerializer, RecommendUserSerializer
 from CODE.utils.recommendations import get_user_recommendation
+from CODE.utils.notifications import create_notification
 
 
 class ConnectionView(ModelViewSet):
@@ -197,7 +198,11 @@ class ConnectionRequestView(APIView):
                     serializer = ConnectionSerializer(data=data)
                     if serializer.is_valid():
                         serializer.save()
-                        # TODO: Add notifications.
+                        create_notification(
+                            user=userB,
+                            notification_type='CONNECTION_REQUEST',
+                            object=current_user
+                        )
                         return Response(serializer.data, status=200)
                     else:
                         return Response(serializer.errors, status=400)
@@ -229,6 +234,11 @@ class ConnectionRequestAcceptView(APIView):
             else:
                 connection.status = 'accepted'
                 connection.save()
+                create_notification(
+                    user=connection.userA,
+                    notification_type='CONNECTION_ACCEPTED',
+                    object=current_user
+                )
                 UserAnalytics.objects.create(
                     profileUser=connection.userA,
                     visitor=connection.userB,

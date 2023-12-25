@@ -8,7 +8,7 @@ from .models import Notification
 class NotificationAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'title',
+        'message',
         'link',
         'notificationType',
         'user',

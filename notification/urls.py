@@ -6,6 +6,6 @@ router = SimpleRouter()
 router.register('notification', NotificationView, basename='notification')
 
 urlpatterns = [
-    path('read', NotificationReadView.as_view())
+    path('read/', NotificationReadView.as_view())
 ]
 urlpatterns += router.urls

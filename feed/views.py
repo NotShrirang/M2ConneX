@@ -30,6 +30,7 @@ from itertools import chain
 from CODE.utils.s3 import upload_image
 from CODE.utils.recommendations import get_feed_recommendation
 from CODE.utils.nsfw import text_nsfw_checker
+from CODE.utils.notifications import create_notification
 from analytics.models import UserAnalytics
 from analytics.serializers import UserAnalyticsSerializer
 
@@ -152,6 +153,9 @@ class FeedView(ModelViewSet):
         final_data = serializer.data
         feedId = serializer.data['id']
         images = request.data.get('images', [])
+        print("IMAGES", images, flush=True)
+        if images == [] or images is None or images == [''] or images == [""]:
+            return Response(final_data, status=status.HTTP_201_CREATED)
         final_image_data = []
         for image in images:
             if image == images[0]:
@@ -314,12 +318,18 @@ class FeedActionView(ModelViewSet):
         if serializer.is_valid():
             serializer.save()
             final_data = serializer.data
+            feedUser = Feed.objects.get(id=feedId).user
             if action == 'LIKE':
                 analytics_data = {
-                    'profileUser': Feed.objects.get(id=feedId).user.id,
+                    'profileUser': feedUser.id,
                     'visitor': current_user.id,
                     'analyticsType': 'feed like'
                 }
+                create_notification(
+                    user=feedUser,
+                    notification_type='LIKE',
+                    object=FeedAction.objects.get(id=serializer.data['id']),
+                )
             elif action == 'COMMENT':
                 comment_data = {
                     'feedAction': serializer.data['id'],
@@ -330,16 +340,22 @@ class FeedActionView(ModelViewSet):
                 if comment_serializer.is_valid():
                     comment_serializer.save()
                     analytics_data = {
-                        'profileUser': Feed.objects.get(id=feedId).user.id,
+                        'profileUser': feedUser.id,
                         'visitor': current_user.id,
                         'analyticsType': 'feed comment'
                     }
+                    create_notification(
+                        user=feedUser,
+                        notification_type='COMMENT',
+                        object=FeedAction.objects.get(
+                            id=serializer.data['id']),
+                    )
                 else:
                     return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 final_data['comment'] = comment_serializer.data
             elif action == 'SHARE':
                 analytics_data = {
-                    'profileUser': Feed.objects.get(id=feedId).user.id,
+                    'profileUser': feedUser.id,
                     'visitor': current_user.id,
                     'analyticsType': 'feed share'
                 }

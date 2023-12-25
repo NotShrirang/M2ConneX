@@ -8,7 +8,7 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 
 class OpportunitySerializer(ModelSerializer):
-    alumniName = SerializerMethodField()
+    userName = SerializerMethodField()
     profilePicture = SerializerMethodField()
     requiredSkills = SerializerMethodField()
     hasApplied = SerializerMethodField()
@@ -21,7 +21,7 @@ class OpportunitySerializer(ModelSerializer):
             'description',
             'payPerMonth',
             'isPaid',
-            'alumni',
+            'user',
             'type',
             'companyName',
             'startDate',
@@ -29,19 +29,20 @@ class OpportunitySerializer(ModelSerializer):
             'location',
             'workMode',
             'requiredSkills',
+            'userName',
+            'profilePicture',
+            'hasApplied',
             'createdAt',
             'updatedAt',
-            'alumniName',
-            'profilePicture'
         ]
         list_fields = fields
         get_fields = fields
 
-    def get_alumniName(self, instance):
-        return (instance.alumni.user.firstName or '') + ' ' + (instance.alumni.user.lastName or '')
+    def get_userName(self, instance):
+        return (instance.user.firstName or '') + ' ' + (instance.user.lastName or '')
 
     def get_profilePicture(self, instance):
-        return instance.alumni.user.profilePicture
+        return instance.user.profilePicture
 
     def get_requiredSkills(self, instance):
         return OpportunitySkillSerializer(instance.skills.all(), many=True).data
@@ -84,8 +85,8 @@ class OpportunityApplicationSerializer(ModelSerializer):
             'name': instance.applicant.firstName + " " + instance.applicant.lastName,
             'email': instance.applicant.email,
             'resume': instance.applicant.resume,
-            'phone': instance.applicant.phoneNumber,
-            'location': instance.applicant.city,
+            'phone': str(instance.applicant.phoneNumber),
+            'location': instance.applicant.city.name + ", " + instance.applicant.city.state.name + ", " + instance.applicant.city.state.country.name,
             'profilePicture': instance.applicant.profilePicture
         }
         return data
