@@ -35,6 +35,7 @@ class HomeView(APIView):
                 '/donation/',
                 '/csc/',
                 '/connection/',
+                '/club/',
                 '/blog/'
                 '/analytics/'
             ]
@@ -59,6 +60,7 @@ urlpatterns = [
     path("donation/", include("donation.urls")),
     path("csc/", include("csc.urls")),
     path("connection/", include("connection.urls")),
+    path("club/", include("club.urls")),
     path("blog/", include("blog.urls")),
     path("analytics/", include("analytics.urls")),
     path("notification/", include("notification.urls")),

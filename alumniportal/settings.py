@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "analytics",
     "blog",
+    "club",
     "connection",
     "csc",
     "donation",
