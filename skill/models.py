@@ -11,6 +11,8 @@ class Skill(CODEBaseModel):
         db_table = 'skill'
         verbose_name = "Skill"
         verbose_name_plural = "Skills"
+        unique_together = ('name',)
+        managed = True
 
     def __str__(self):
         return self.name
@@ -38,6 +40,8 @@ class UserSkill(CODEBaseModel):
         db_table = 'user_skill'
         verbose_name = "User Skill"
         verbose_name_plural = "User Skills"
+        unique_together = ('user', 'skill')
+        managed = True
 
     def __str__(self):
         return self.user.email + ' - ' + str(self.skill.name)

@@ -10,11 +10,8 @@ class ExperienceSerializer(ModelSerializer):
         model = Experience
         fields = ['id', 'user', 'company', 'designation',
                   'description', 'startDate', 'endDate', 'isCurrent', 'userName', 'profilePicture']
-        read_only_fields = ['id', 'user']
-        list_fields = ['id', 'user', 'company', 'designation',
-                       'description', 'startDate', 'endDate', 'isCurrent']
-        get_fields = ['id', 'user', 'company', 'designation',
-                      'description', 'startDate', 'endDate', 'isCurrent']
+        list_fields = fields
+        get_fields = fields
 
     def get_userName(self, obj):
         return obj.user.firstName + " " + obj.user.lastName
@@ -23,12 +20,14 @@ class ExperienceSerializer(ModelSerializer):
         return obj.user.profilePicture if obj.user.profilePicture else None
 
     def validate(self, attrs):
-        if attrs.get('endDate') and attrs.get('isCurrent'):
-            raise ValidationError(
-                "Experience cannot be current and have an end date")
-        if not attrs.get('endDate') and not attrs.get('isCurrent'):
-            raise ValidationError(
-                "Experience must be current or have an end date")
+        if 'endDate' not in attrs:
+            if 'isCurrent' not in attrs:
+                raise ValidationError(
+                    "Experience must be current or have an end date")
+            else:
+                if attrs.get('isCurrent') is False:
+                    raise ValidationError(
+                        "Experience must be current or have an end date")
         startDate = attrs.get('startDate')
         endDate = attrs.get('endDate')
         if endDate and startDate > endDate:

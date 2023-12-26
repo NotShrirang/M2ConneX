@@ -200,13 +200,42 @@ class AlumniPortalUserView(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({"error": "user is not active"}, status=status.HTTP_400_BAD_REQUEST)
+        if not current_user.isVerified:
+            return Response({"error": "user is not verified"}, status=status.HTTP_400_BAD_REQUEST)
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({"error": "user is not active"}, status=status.HTTP_400_BAD_REQUEST)
+        if not current_user.isVerified:
+            return Response({"error": "user is not verified"}, status=status.HTTP_400_BAD_REQUEST)
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({"error": "user is not active"}, status=status.HTTP_400_BAD_REQUEST)
+        if not current_user.isVerified:
+            return Response({"error": "user is not verified"}, status=status.HTTP_400_BAD_REQUEST)
+        if current_user.privilege != "Super Admin" or current_user.is_superuser != True:
+            return Response({"error": "user is not authorized"}, status=status.HTTP_403_FORBIDDEN)
+        userId = kwargs['pk']
+        user = AlumniPortalUser.objects.filter(id=userId)
+        if user.exists():
+            user = user.first()
+            user.is_active = False
+            user.save()
+            return Response({
+                "message": "user deleted successfully"
+            }, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({
+                "error": "user not found"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AlumniView(ModelViewSet):

@@ -11,18 +11,8 @@ class CountrySerializer(serializers.ModelSerializer):
             "updatedAt",
             "name",
         )
-        get_fields = (
-            "id",
-            "createdAt",
-            "updatedAt",
-            "name",
-        )
-        list_fields = (
-            "id",
-            "createdAt",
-            "updatedAt",
-            "name",
-        )
+        get_fields = fields
+        list_fields = fields
 
 
 class StateSerializer(serializers.ModelSerializer):
@@ -40,7 +30,11 @@ class StateSerializer(serializers.ModelSerializer):
 
 
 class CitySerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
+    cityName = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
+    stateName = serializers.SerializerMethodField()
+    country = serializers.SerializerMethodField()
+    countryName = serializers.SerializerMethodField()
 
     class Meta:
         model = City
@@ -49,10 +43,26 @@ class CitySerializer(serializers.ModelSerializer):
             "createdAt",
             "updatedAt",
             "name",
+            "cityName",
             "state",
+            "stateName",
+            "country",
+            "countryName",
         )
         list_fields = fields
         get_fields = fields
 
-    def get_name(self, instance):
-        return instance.name + " | " + instance.state.name + " | " + instance.state.country.name
+    def get_cityName(self, instance):
+        return instance.name + ", " + instance.state.name + ", " + instance.state.country.name
+
+    def get_state(self, instance):
+        return instance.state.id
+
+    def get_stateName(self, instance):
+        return instance.state.name + ", " + instance.state.country.name
+
+    def get_country(self, instance):
+        return instance.state.country.id
+
+    def get_countryName(self, instance):
+        return instance.state.country.name

@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import generics, status, pagination
+from rest_framework import generics, pagination
 
 from experience.models import Experience
 from experience.serializers import ExperienceSerializer
@@ -12,6 +12,8 @@ class ExperienceView(ModelViewSet):
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
     permission_classes = [IsAuthenticated,]
+    pagination_class = pagination.PageNumberPagination
+    ordering = ['-endDate']
 
     def list(self, request, *args, **kwargs):
         current_user: AlumniPortalUser = request.user
@@ -44,17 +46,26 @@ class ExperienceView(ModelViewSet):
         current_user: AlumniPortalUser = request.user
         if current_user.is_active is False:
             return Response({"detail": "User is not active"}, status=400)
-        elif current_user.isVerified is False:
+        if current_user.isVerified is False:
             return Response({"detail": "User is not verified"}, status=400)
-        else:
-            data = request.data
-            data['user'] = current_user.id
-            serializer = ExperienceSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
+        data = request.data
+        if 'endDate' not in request.data:
+            if 'isCurrent' not in request.data:
+                return Response({"detail": "Experience must be current or have an end date"}, status=400)
             else:
-                return Response(serializer.errors, status=400)
+                if request.data.get('isCurrent') is False:
+                    return Response({"detail": "Experience must be current or have an end date"}, status=400)
+            data['endDate'] = None
+        if data.get('endDate') and data.get('startDate') > data.get('endDate'):
+            return Response({"detail": "Start date cannot be after end date"}, status=400)
+        data['user'] = current_user.id
+        print("EXPERIENCE DATA", data, flush=True)
+        serializer = ExperienceSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        else:
+            return Response(serializer.errors, status=400)
 
     def update(self, request, *args, **kwargs):
         experienceId = kwargs.get('pk')
