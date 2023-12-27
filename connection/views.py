@@ -3,7 +3,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status, generics
+from rest_framework import status, generics, pagination
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from analytics.models import UserAnalytics
 from analytics.serializers import UserAnalyticsSerializer
@@ -20,7 +22,12 @@ class ConnectionView(ModelViewSet):
     serializer_class = ConnectionSerializer
     queryset = Connection.objects.all()
     filterset_class = ConnectionFilter
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    permission_classes = [IsAuthenticated, ]
+    pagination_class = pagination.PageNumberPagination
     search_fields = [
+        'userA',
+        'userB',
         'userA__firstName',
         'userA__lastName',
         'userA__email',
@@ -43,7 +50,12 @@ class ConnectionView(ModelViewSet):
             return Response({"detail": "User is not verified"}, status=400)
         else:
             queryset = Connection.objects.filter(
-                Q(userA=current_user) | Q(userB=current_user))
+                Q(userA=current_user) | Q(userB=current_user), isActive=True)
+            qs = self.filter_queryset(queryset)
+            page = self.paginate_queryset(qs)
+            if page is not None:
+                serializer = ConnectionSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
             serializer = ConnectionSerializer(queryset, many=True)
             return Response(serializer.data)
 
@@ -186,9 +198,14 @@ class ConnectionRequestView(APIView):
                 return Response({"detail": "User B is not verified"}, status=400)
             else:
                 connection_qs = Connection.objects.filter(
-                    userA=current_user.id, userB=userB.id, status="pending")
+                    userA=current_user.id, userB=userB.id)
                 if connection_qs.exists():
-                    return Response({"detail": "Connection request already sent"}, status=400)
+                    if connection_qs.first().status == 'pending':
+                        return Response({"detail": "Connection request already sent."}, status=400)
+                    elif connection_qs.first().status == 'accepted':
+                        return Response({"detail": "Connection already exists."}, status=400)
+                    else:
+                        return Response({"detail": "Connection request already rejected."}, status=400)
                 else:
                     data = {
                         'userA': current_user.id,
@@ -217,8 +234,10 @@ class ConnectionRequestAcceptView(APIView):
             return Response({"detail": "User is not active"}, status=400)
         elif not current_user.isVerified:
             return Response({"detail": "User is not verified"}, status=400)
-        connection = Connection.objects.filter(
-            id=request.data.get('connectionId'))
+        connectionId = request.data.get('connectionId')
+        if not connectionId:
+            return Response({"detail": "Connection ID not provided"}, status=400)
+        connection = Connection.objects.filter(id=connectionId)
         if not connection.exists():
             return Response({"detail": "Connection request does not exist"}, status=400)
         connection = connection.first()
@@ -231,6 +250,8 @@ class ConnectionRequestAcceptView(APIView):
         if connection.isActive:
             if connection.status == 'accepted':
                 return Response({"details": "Connection request already accepted."}, status=400)
+            elif connection.status == 'rejected':
+                return Response({"details": "Connection request already rejected."}, status=400)
             else:
                 connection.status = 'accepted'
                 connection.save()
@@ -254,6 +275,44 @@ class ConnectionRequestAcceptView(APIView):
             return Response({"details": "Connection request does not exist."}, status=400)
 
 
+class ConnectionRequestRejectView(APIView):
+    def post(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({"detail": "User is not active"}, status=400)
+        elif not current_user.isVerified:
+            return Response({"detail": "User is not verified"}, status=400)
+        connectionId = request.data.get('connectionId')
+        if not connectionId:
+            return Response({"detail": "Connection ID not provided"}, status=400)
+        connection = Connection.objects.filter(id=connectionId)
+        if not connection.exists():
+            return Response({"detail": "Connection request does not exist"}, status=400)
+        connection = connection.first()
+        if connection.userB != current_user:
+            return Response({"detail": "User is not authorized to rejected this connection request"}, status=400)
+        if connection.userA.is_active is False:
+            return Response({"detail": "User A is not active"}, status=400)
+        elif connection.userA.isVerified is False:
+            return Response({"detail": "User A is not verified"}, status=400)
+        if connection.isActive:
+            if connection.status == 'rejected':
+                return Response({"details": "Connection request already rejected."}, status=400)
+            elif connection.status == 'accepted':
+                return Response({"details": "Connection request already accepted."}, status=400)
+            else:
+                connection.status = 'rejected'
+                connection.save()
+                create_notification(
+                    user=connection.userA,
+                    notification_type='CONNECTION_REJECTED',
+                    object=current_user
+                )
+                return Response({"details": "Connection request rejected successfully."}, status=200)
+        else:
+            return Response({"details": "Connection request does not exist."}, status=400)
+
+
 class RecommendConnectionView(generics.ListAPIView):
     serializer_class = ConnectionSerializer
     queryset = Connection.objects.all()
@@ -273,9 +332,9 @@ class RecommendConnectionView(generics.ListAPIView):
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
 
         userA_connected = Connection.objects.filter(
-            userA=current_user, status='accepted').values_list('userB', flat=True)
+            userA=current_user, status__in=['accepted', 'rejected']).values_list('userB', flat=True)
         userB_connected = Connection.objects.filter(
-            userB=current_user, status='accepted').values_list('userA', flat=True)
+            userB=current_user, status__in=['accepted', 'rejected']).values_list('userA', flat=True)
 
         qs = AlumniPortalUser.objects.filter(is_active=True, isVerified=True).exclude(
             id__in=userA_connected).exclude(id__in=userB_connected).exclude(id=current_user.id)

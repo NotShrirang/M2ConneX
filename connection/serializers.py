@@ -28,7 +28,8 @@ class ConnectionSerializer(ModelSerializer):
             "lastName": obj.userA.lastName,
             "profilePicture": obj.userA.profilePicture,
             "email": obj.userA.email,
-            "department": obj.userA.department
+            "department": obj.userA.department,
+            "bio": obj.userA.bio,
         }
 
     def get_userBDetails(self, obj):
@@ -37,7 +38,8 @@ class ConnectionSerializer(ModelSerializer):
             "lastName": obj.userB.lastName,
             "profilePicture": obj.userB.profilePicture,
             "email": obj.userB.email,
-            "department": obj.userB.department
+            "department": obj.userB.department,
+            "bio": obj.userB.bio,
         }
 
     def get_mutualConnections(self, obj):
