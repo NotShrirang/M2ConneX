@@ -17,6 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from connection.models import Connection
 from connection.serializers import ConnectionSerializer
 from skill.serializers import SkillSerializer, UserSkillSerializer
+from club.serializers import ClubMemberSerializer
 
 
 class AlumniPortalUserSerializer(ModelSerializer):
@@ -24,11 +25,16 @@ class AlumniPortalUserSerializer(ModelSerializer):
     skills = SerializerMethodField()
     cityName = SerializerMethodField()
     isConnected = SerializerMethodField()
+    clubs = SerializerMethodField()
 
     class Meta:
         model = AlumniPortalUser
-        fields = ['id', 'email', 'firstName', 'lastName', 'department', 'privilege', 'bio', 'resume', 'profilePicture',
-                  'city', 'cityName', 'phoneNumber', 'createdAt', 'updatedAt', 'isVerified', 'is_active', 'is_admin', 'is_staff', 'is_superuser', 'signInMethod', 'connections', 'skills', 'isConnected']
+        fields = ['id', 'email', 'firstName', 'lastName', 'department',
+                  'privilege', 'bio', 'resume', 'profilePicture',
+                  'city', 'cityName', 'phoneNumber', 'createdAt', 'updatedAt',
+                  'isVerified', 'is_active', 'is_admin', 'is_staff',
+                  'is_superuser', 'signInMethod', 'connections', 'skills',
+                  'clubs', 'isConnected']
         list_fields = fields
         get_fields = fields
 
@@ -63,6 +69,11 @@ class AlumniPortalUserSerializer(ModelSerializer):
             return 'pending'
         else:
             return 'not_connected'
+
+    def get_clubs(self, obj):
+        user_clubs = obj.clubs.all()
+        serializer = ClubMemberSerializer(user_clubs, many=True)
+        return serializer.data
 
 
 class RecommendUserSerializer(ModelSerializer):

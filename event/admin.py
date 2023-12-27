@@ -19,6 +19,8 @@ class EventAdmin(admin.ModelAdmin):
         'department',
         'link',
         'createdByUser',
+        'isClubEvent',
+        'club',
     )
     list_filter = (
         'createdAt',
@@ -26,6 +28,8 @@ class EventAdmin(admin.ModelAdmin):
         'isActive',
         'date',
         'createdByUser',
+        'isClubEvent',
+        'club',
     )
     search_fields = ('name',)
 

@@ -2,6 +2,8 @@ from django.db import models
 from CODE.models import CODEBaseModel
 from users.models import AlumniPortalUser
 
+from club.models import Club
+
 
 class Event(CODEBaseModel):
 
@@ -18,12 +20,19 @@ class Event(CODEBaseModel):
 
     name = models.TextField(blank=False, null=False)
     description = models.TextField(blank=False, null=False)
-    date = models.DateField(blank=False, null=False)    
+    date = models.DateField(blank=False, null=False)
     time = models.TimeField(blank=False, null=False)
     venue = models.TextField(blank=False, null=False)
-    department = models.TextField(blank=False, null=False, choices=DEPARTMENT_CHOICES)
+    department = models.TextField(
+        blank=False, null=False, choices=DEPARTMENT_CHOICES)
     link = models.URLField(blank=True, null=True)
-    createdByUser = models.ForeignKey(AlumniPortalUser, on_delete=models.CASCADE, related_name='createdEvents')
+    createdByUser = models.ForeignKey(
+        AlumniPortalUser, on_delete=models.CASCADE,
+        related_name='createdEvents')
+    isClubEvent = models.BooleanField(default=False)
+    club = models.ForeignKey(
+        Club, on_delete=models.CASCADE, related_name='events', null=True,
+        blank=True)
 
     class Meta:
         db_table = 'event'
@@ -37,7 +46,8 @@ class Event(CODEBaseModel):
 
 
 class EventImage(CODEBaseModel):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='images')
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name='images')
     image = models.URLField(blank=False, null=False)
 
     class Meta:

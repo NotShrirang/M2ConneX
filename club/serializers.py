@@ -11,7 +11,7 @@ class ClubSerializer(serializers.ModelSerializer):
         model = Club
         fields = ['id', 'name', 'description', 'logo', 'website',
                   'socialMedia1', 'socialMedia2', 'socialMedia3', 'email',
-                  'phone', 'facultyMentor', 'memberCount']
+                  'phone', 'facultyMentor', 'facultyMentorName', 'memberCount']
         get_fields = fields
         list_fields = fields
 
@@ -37,17 +37,21 @@ class ClubSerializer(serializers.ModelSerializer):
 
 class ClubMemberSerializer(serializers.ModelSerializer):
     clubName = serializers.SerializerMethodField()
+    clubLogo = serializers.SerializerMethodField()
     userName = serializers.SerializerMethodField()
 
     class Meta:
         model = ClubMember
         fields = ['id', 'user', 'club', 'position', 'positionInWords',
-                  'isClubAdmin', 'clubName', 'userName']
+                  'isClubAdmin', 'clubName', 'clubLogo', 'userName']
         get_fields = fields
         list_fields = fields
 
     def get_clubName(self, obj):
         return obj.club.name
+
+    def get_clubLogo(self, obj):
+        return obj.club.logo
 
     def get_userName(self, obj):
         return obj.user.firstName + ' ' + obj.user.lastName

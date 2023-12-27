@@ -4,15 +4,16 @@ from users.models import AlumniPortalUser
 
 
 class Club(CODEBaseModel):
-    name = models.CharField(max_length=100, unique=True, null=False)
-    description = models.TextField()
+    name = models.CharField(max_length=100, unique=True,
+                            null=False, blank=False)
+    description = models.TextField(null=True, blank=True)
     logo = models.URLField(max_length=200, null=False)
-    website = models.URLField(max_length=200, null=True)
-    socialMedia1 = models.URLField(max_length=200, null=True)
-    socialMedia2 = models.URLField(max_length=200, null=True)
-    socialMedia3 = models.URLField(max_length=200, null=True)
-    email = models.EmailField(max_length=254, null=True)
-    phone = models.CharField(max_length=20, null=True)
+    website = models.URLField(max_length=200, null=True, blank=True)
+    socialMedia1 = models.URLField(max_length=200, null=True, blank=True)
+    socialMedia2 = models.URLField(max_length=200, null=True, blank=True)
+    socialMedia3 = models.URLField(max_length=200, null=True, blank=True)
+    email = models.EmailField(max_length=254, null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
 
     class Meta:
         db_table = 'club'
@@ -32,7 +33,7 @@ class ClubMember(CODEBaseModel):
         ('member', 'member'),
     )
     user = models.ForeignKey(
-        AlumniPortalUser, on_delete=models.CASCADE, null=False)
+        AlumniPortalUser, on_delete=models.CASCADE, null=False, related_name='clubs')
     club = models.ForeignKey(
         Club, on_delete=models.CASCADE, null=False, related_name='members')
     position = models.CharField(
