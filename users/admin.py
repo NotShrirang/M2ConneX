@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import AlumniPortalUser, Alumni, Student, Faculty, SuperAdmin, Blogger
+from .models import AlumniPortalUser, Alumni, Student, Faculty, SuperAdmin
 
 
 @admin.register(AlumniPortalUser)
@@ -12,17 +12,18 @@ class AlumniPortalUserAdmin(admin.ModelAdmin):
         'firstName',
         'lastName',
         'department',
-        'privilege',
-        'phoneNumber',
-        'city',
-        'identifier',
-        'bio',
         'profilePicture',
+        'bio',
+        'identifier',
+        'privilege',
         'resume',
+        'city',
+        'phoneNumber',
         'signInMethod',
+        'password',
+        'last_login',
         'createdAt',
         'updatedAt',
-        'last_login',
         'isVerified',
         'is_active',
         'is_admin',
@@ -51,17 +52,17 @@ class AlumniAdmin(admin.ModelAdmin):
         'batch',
         'enrollmentYear',
         'passingOutYear',
-        'isActive',
         'createdAt',
         'updatedAt',
+        'isActive',
     )
     list_filter = (
-        'createdAt',
-        'updatedAt',
-        'isActive',
         'user',
         'enrollmentYear',
         'passingOutYear',
+        'createdAt',
+        'updatedAt',
+        'isActive',
     )
 
 
@@ -73,17 +74,17 @@ class StudentAdmin(admin.ModelAdmin):
         'batch',
         'enrollmentYear',
         'passingOutYear',
-        'isActive',
         'createdAt',
         'updatedAt',
+        'isActive',
     )
     list_filter = (
-        'createdAt',
-        'updatedAt',
-        'isActive',
         'user',
         'enrollmentYear',
         'passingOutYear',
+        'createdAt',
+        'updatedAt',
+        'isActive',
     )
 
 
@@ -93,9 +94,9 @@ class FacultyAdmin(admin.ModelAdmin):
         'id',
         'user',
         'college',
-        'isActive',
         'createdAt',
         'updatedAt',
+        'isActive',
     )
     list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
 
@@ -103,10 +104,4 @@ class FacultyAdmin(admin.ModelAdmin):
 @admin.register(SuperAdmin)
 class SuperAdminAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'createdAt', 'updatedAt', 'isActive')
-    list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
-
-
-@admin.register(Blogger)
-class BloggerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'createdAt', 'updatedAt', 'isActive')
-    list_filter = ('createdAt', 'updatedAt', 'isActive', 'user')
+    list_filter = ('user', 'createdAt', 'updatedAt', 'isActive')

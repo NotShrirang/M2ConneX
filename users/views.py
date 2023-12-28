@@ -298,16 +298,6 @@ class FacultyView(ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
-class BloggerView(ModelViewSet):
-    queryset = Faculty.objects.all()
-    serializer_class = FacultySerializer
-    search_fields = [
-        'user__firstName',
-        'user__lastName',
-        'user__email',
-    ]
-
-
 class SuperAdminView(ModelViewSet):
     queryset = SuperAdmin.objects.all()
     serializer_class = SuperAdminSerializer

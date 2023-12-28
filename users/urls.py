@@ -11,8 +11,7 @@ from users.views import (
     AlumniView,
     StudentView,
     FacultyView,
-    SuperAdminView,
-    BloggerView
+    SuperAdminView
 )
 from rest_framework_simplejwt.views import (
     TokenRefreshView
@@ -44,7 +43,6 @@ router.register(r'alumni', AlumniView, basename='alumni')
 router.register(r'students', StudentView, basename='students')
 router.register(r'faculty', FacultyView, basename='faculty')
 router.register(r'super-admin', SuperAdminView, basename='super-admin')
-router.register(r'blogger', BloggerView, basename='blogger')
 
 urlpatterns = [
     path('', HomeView.as_view(), name="homeview"),

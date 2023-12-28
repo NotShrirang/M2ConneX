@@ -3,8 +3,7 @@ from users.models import (
     Alumni,
     Student,
     Faculty,
-    SuperAdmin,
-    Blogger
+    SuperAdmin
 )
 import requests
 from django.contrib import auth
@@ -270,12 +269,6 @@ class FacultySerializer(ModelSerializer):
 class SuperAdminSerializer(ModelSerializer):
     class Meta:
         model = SuperAdmin
-        fields = ['id', 'user']
-
-
-class BloggerSerializer(ModelSerializer):
-    class Meta:
-        model = Blogger
         fields = ['id', 'user']
 
 

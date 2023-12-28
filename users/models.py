@@ -66,7 +66,8 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
         max_length=255, blank=True, null=True, choices=PRIVILEGE_CHOICES)
     bio = models.TextField(null=True, blank=True)
     resume = models.URLField(max_length=255, blank=True, null=True)
-    profilePicture = models.URLField(max_length=255, blank=True, null=True)
+    profilePicture = models.URLField(max_length=255, blank=True, null=True,
+                                     default="https://img.icons8.com/fluency-systems-regular/96/user--v1.png")
     resume = models.URLField(max_length=255, blank=True, null=True)
     city = models.ForeignKey(
         to=City, on_delete=models.CASCADE, related_name='users', blank=True, null=True)
@@ -77,7 +78,7 @@ class AlumniPortalUser(AbstractBaseUser, PermissionsMixin):
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
-    isVerified = models.BooleanField(default=True) #TODO: Change to False
+    isVerified = models.BooleanField(default=True)  # TODO: Change to False
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -158,18 +159,4 @@ class SuperAdmin(CODEBaseModel):
         db_table = 'super_admin'
         verbose_name = 'Super Admin'
         verbose_name_plural = 'Super Admins'
-        managed = True
-
-
-class Blogger(CODEBaseModel):
-    user = models.OneToOneField(
-        to=AlumniPortalUser, on_delete=models.CASCADE, related_name='blogger')
-
-    def __str__(self):
-        return self.user.email
-
-    class Meta:
-        db_table = 'blogger'
-        verbose_name = 'Blogger'
-        verbose_name_plural = 'Bloggers'
         managed = True
