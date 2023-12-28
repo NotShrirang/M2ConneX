@@ -1,12 +1,17 @@
 from django.db import models
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import TruncWeek, TruncMonth
 from rest_framework import views, viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Count
-from django.db.models.functions import TruncWeek, TruncMonth
-from datetime import datetime, timedelta
 from .models import UserAnalytics
 from .serializers import UserAnalyticsSerializer
+from itertools import chain
+
+from connection.models import Connection
+from connection.serializers import ConnectionSerializer
+from feed.models import Feed, FeedAction
+from users.models import AlumniPortalUser
 
 
 class UserAnalyticsView(viewsets.ModelViewSet):
@@ -110,3 +115,96 @@ class AnalyticsCountView(views.APIView):
         analytics_data['weekly'] = weekly_data
         analytics_data['monthly'] = monthly_data
         return Response(analytics_data, status=status.HTTP_200_OK)
+
+
+class YourInfluenceView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        current_user: AlumniPortalUser = request.user
+        if not current_user.is_active:
+            return Response({"data": "User is not active."}, status=status.HTTP_401_UNAUTHORIZED)
+        if not current_user.isVerified:
+            return Response({"data": "User is not verified."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Get all connections of current user
+        connectionA = Connection.objects.filter(
+            Q(userA=current_user))
+        connectionB = Connection.objects.filter(
+            Q(userB=current_user))
+
+        # Get all post count of current user's connections
+        connection_post_count = 0
+        for connection in connectionA:
+            connection_post_count += connection.userB.feed.all().count()
+        for connection in connectionB:
+            connection_post_count += connection.userA.feed.all().count()
+
+        connection_count = Connection.objects.filter(
+            Q(userA=current_user) | Q(userB=current_user),
+            status='accepted'
+        ).count()
+
+        # Get all feed of current user
+        feed = current_user.feed
+
+        # Get influence of current user
+        feed_count = feed.count()
+
+        actions = FeedAction.objects.filter(feed__user=current_user)
+        action_count = actions.count()
+
+        follower_count = Connection.objects.filter(
+            userB=current_user, status='accepted').count()
+
+        user_influence = connection_count + feed_count + action_count + follower_count
+
+        total_influence = (
+            Connection.objects.filter(status='accepted').count() +
+            Feed.objects.annotate(action_count=Count('actions')).aggregate(Sum('action_count'))['action_count__sum'] +
+            Connection.objects.filter(status='accepted').count()
+        )
+
+        if total_influence == 0:
+            influence_percentage = 0
+
+        if total_influence > 0:
+            influence_percentage = round(
+                (user_influence / total_influence) * 100, 2)
+
+        # Get all connections of current user's connections
+        connections = chain(connectionA, connectionB)
+        serializer_data = ConnectionSerializer(connections, many=True).data
+
+        # Get percentage of connected users actions on current user's feed.
+        # Actions of connected users on current user's feed / total actions on current user's feed
+
+        feed_actions = actions.filter(
+            Q(user__in=connectionA.values_list('userB', flat=True)) |
+            Q(user__in=connectionB.values_list('userA', flat=True))
+        )
+
+        feed_action_count = feed_actions.count()
+
+        reach = actions.exclude(
+            id__in=feed_actions.values_list('id', flat=True)).count()
+
+        if action_count == 0:
+            feed_action_percentage = 0
+
+        if action_count > 0:
+            feed_action_percentage = round(
+                (feed_action_count / action_count) * 100, 2)
+
+        return Response({
+            'connection_count': connection_count,
+            'follower_count': follower_count,
+            'feed_count': feed_count,
+            'action_count': action_count,
+            'reach': reach,
+            'connection_post_count': connection_post_count,
+            'user_influence': user_influence,
+            'influence_percentage': influence_percentage,
+            'feed_action_percentage': feed_action_percentage,
+            'connections': serializer_data
+        }, status=status.HTTP_200_OK)
