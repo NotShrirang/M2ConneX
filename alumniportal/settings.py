@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "feed",
     "notification",
     "opportunity",
+    "otp",
     "skill",
     "users",
 ]

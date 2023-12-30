@@ -20,7 +20,9 @@ from rest_framework.response import Response
 from rest_framework import status, views
 from rest_framework import generics, permissions, pagination
 from django.db import transaction
-from CODE.utils import emails
+from CODE.utils import emails, otps
+
+from otp.serializers import OTPSerializer
 
 
 class AlumniPortalUserRegisterView(generics.GenericAPIView):
@@ -78,9 +80,19 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 if alumni_serializer.is_valid():
                     alumni_serializer.save()
                     user_data['Alumni'] = alumni_serializer.data
-                    emails.send_welcome_email(
-                        name=user_data['firstName'], receiver=user_data['email'])
-                    return Response(user_data, status=status.HTTP_201_CREATED)
+                    otp = otps.generate_otp()
+                    otp_data = {
+                        "otp": otp,
+                        "user": user_id
+                    }
+                    otp_serializer = OTPSerializer(data=otp_data)
+                    if otp_serializer.is_valid():
+                        otp_serializer.save()
+                        emails.send_otp_email(
+                            name=user_data['firstName'], receiver=user_data['email'], otp=otp)
+                        return Response({"status": "ok"}, status=status.HTTP_201_CREATED)
+                    else:
+                        return Response(otp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     return Response(alumni_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             elif privilege == "Student":
@@ -94,9 +106,19 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 if student_serializer.is_valid():
                     student_serializer.save()
                     user_data['Student'] = student_serializer.data
-                    emails.send_welcome_email(
-                        name=user_data['firstName'], receiver=user_data['email'])
-                    return Response(user_data, status=status.HTTP_201_CREATED)
+                    otp = otps.generate_otp()
+                    otp_data = {
+                        "otp": otp,
+                        "user": user_id
+                    }
+                    otp_serializer = OTPSerializer(data=otp_data)
+                    if otp_serializer.is_valid():
+                        otp_serializer.save()
+                        emails.send_otp_email(
+                            name=user_data['firstName'], receiver=user_data['email'], otp=otp)
+                        return Response({"status": "ok"}, status=status.HTTP_201_CREATED)
+                    else:
+                        return Response(otp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     return Response(student_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             elif privilege == "Staff":
@@ -108,9 +130,17 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 if faculty_serializer.is_valid():
                     faculty_serializer.save()
                     user_data['Staff'] = faculty_serializer.data
-                    emails.send_welcome_email(
-                        name=user_data['firstName'], receiver=user_data['email'])
-                    return Response(user_data, status=status.HTTP_201_CREATED)
+                    otp = otps.generate_otp()
+                    otp_data = {
+                        "otp": otp,
+                        "user": user_id
+                    }
+                    otp_serializer = OTPSerializer(data=otp_data)
+                    if otp_serializer.is_valid():
+                        otp_serializer.save()
+                        emails.send_otp_email(
+                            name=user_data['firstName'], receiver=user_data['email'], otp=otp)
+                    return Response({"status": "ok"}, status=status.HTTP_201_CREATED)
                 else:
                     return Response(faculty_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             elif privilege == "Super Admin":
@@ -122,9 +152,19 @@ class AlumniPortalUserRegisterView(generics.GenericAPIView):
                 if superAdmin_serializer.is_valid():
                     superAdmin_serializer.save()
                     user_data['Super Admin'] = superAdmin_serializer.data
-                    emails.send_welcome_email(
-                        name=user_data['firstName'], receiver=user_data['email'])
-                    return Response(user_data, status=status.HTTP_201_CREATED)
+                    otp = otps.generate_otp()
+                    otp_data = {
+                        "otp": otp,
+                        "user": user_id
+                    }
+                    otp_serializer = OTPSerializer(data=otp_data)
+                    if otp_serializer.is_valid():
+                        otp_serializer.save()
+                        emails.send_otp_email(
+                            name=user_data['firstName'], receiver=user_data['email'], otp=otp)
+                        return Response({"status": "ok"}, status=status.HTTP_201_CREATED)
+                    else:
+                        return Response(otp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     return Response(superAdmin_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             else:
@@ -173,6 +213,7 @@ class AlumniPortalUserView(ModelViewSet):
     queryset = AlumniPortalUser.objects.all()
     serializer_class = AlumniPortalUserSerializer
     pagination_class = pagination.PageNumberPagination
+    permission_classes = (permissions.IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         current_user = request.user

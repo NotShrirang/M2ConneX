@@ -1,23 +1,27 @@
 from django.db import models
 from CODE.models import CODEBaseModel
-from users.models import Blogger, AlumniPortalUser
+from users.models import AlumniPortalUser
 from django.utils.translation import gettext_lazy as _
 
 
 class Blog(CODEBaseModel):
     title = models.CharField(verbose_name=_("Title"),
-                             max_length=100, null=False, db_column="title")
+                             max_length=200, null=False, db_column="title")
     content = models.TextField(verbose_name=_("Content"),
                                null=False, db_column="content")
     author = models.ForeignKey(verbose_name=_("Author"),
-                               to=Blogger, on_delete=models.CASCADE, db_column="author_id", related_name="blogs")
+                               to=AlumniPortalUser, on_delete=models.CASCADE, db_column="author_id", related_name="blogs")
+    keywords = models.CharField(verbose_name=_("Keywords"), max_length=200,
+                                null=True, db_column="keywords")
+    image = models.URLField(verbose_name=_(
+        "Image"), null=True, db_column="image")
     isPublic = models.BooleanField(verbose_name=_("Is Public"),
                                    null=False, default=True, db_column="is_public")
     isDrafted = models.BooleanField(verbose_name=_("Is Drafted"),
                                     null=False, default=False, db_column="is_drafted")
 
     def __str__(self):
-        return self.title + " by " + self.author.user.firstName + " " + self.author.user.lastName
+        return self.title + " by " + self.author.firstName + " " + self.author.lastName
 
     class Meta:
         db_table = "blog"
@@ -50,9 +54,9 @@ class BlogComment(CODEBaseModel):
 class BlogAction(CODEBaseModel):
 
     ACTION_CHOICES = (
-        ('like', 'Like'),
-        ('dislike', 'Dislike'),
-        ('report', 'Report'),
+        ('like', 'like'),
+        ('dislike', 'dislike'),
+        ('report', 'report'),
     )
 
     action = models.CharField(verbose_name=_("Action"), max_length=10,

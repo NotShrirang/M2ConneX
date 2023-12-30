@@ -53,7 +53,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("users/", include("users.urls")),
     path("skill/", include("skill.urls")),
+    path("otp/", include("otp.urls")),
     path("opportunity/", include("opportunity.urls")),
+    path("notification/", include("notification.urls")),
     path("feed/", include("feed.urls")),
     path("event/", include("event.urls")),
     path("experience/", include("experience.urls")),
@@ -63,5 +65,4 @@ urlpatterns = [
     path("club/", include("club.urls")),
     path("blog/", include("blog.urls")),
     path("analytics/", include("analytics.urls")),
-    path("notification/", include("notification.urls")),
 ]

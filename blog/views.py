@@ -1,7 +1,8 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import generics, status
+from rest_framework import generics, status, filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import BlogSerializer, BlogCommentSerializer, BlogActionSerializer
 from .models import Blog, BlogComment, BlogAction
 from .filters import BlogFilter, BlogCommentFilter, BlogActionFilter
@@ -13,6 +14,7 @@ class BlogView(ModelViewSet):
     serializer_class = BlogSerializer
     queryset = Blog.objects.all()
     filterset_class = BlogFilter
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     permission_classes = [IsAuthenticated]
     search_fields = [
         'title',
@@ -31,6 +33,22 @@ class BlogView(ModelViewSet):
         'updatedAt',
     ]
     ordering = ['-createdAt']
+
+    def list(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not current_user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+        qs = self.filter_queryset(self.get_queryset())
+        qs = qs.filter(isPublic=True, isDrafted=False)
+        print(qs, flush=True)
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = BlogSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BlogCommentView(ModelViewSet):
@@ -86,6 +104,21 @@ class BlogActionView(ModelViewSet):
     ]
     ordering = ['-createdAt']
 
+    def create(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not current_user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+        data = request.data
+        data['user'] = current_user.id
+        serializer = BlogActionSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RecommendBlogView(generics.ListAPIView):
     serializer_class = BlogSerializer
@@ -117,5 +150,3 @@ class RecommendBlogView(generics.ListAPIView):
             userA=current_user, status='accepted').values_list('userB', flat=True)
         userB_connected = Connection.objects.filter(
             userB=current_user, status='accepted').values_list('userA', flat=True)
-
-        

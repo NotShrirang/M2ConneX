@@ -195,6 +195,9 @@ class LoginSerializer(ModelSerializer):
             raise AuthenticationFailed('Invalid credentials, try again')
         if not user.is_active:
             raise AuthenticationFailed('Account disabled, contact admin')
+        if not user.isVerified:
+            raise AuthenticationFailed(
+                'Account not verified, verify your email.')
         return {
             'email': user.email,
             'tokens': user.tokens

@@ -209,7 +209,92 @@ def send_nsfw_report_to_user(feedId: str, userName: str, userEmail: str, postTim
     send_email.delay(userEmail, subject, message)
 
 
-def send_welcome_email(name, *args, **kwargs):
+def send_otp_email(name, otp, *args, **kwargs):
+    subject = "Verify your account on MMCOE Alumni Portal"
+    message = f"""
+    <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Account</title>
+</head>
+
+<body style="
+            font-family: Arial, sans-serif;
+            text-align: center;
+        ">
+    <div class="container" style="
+                max-width: 600px;
+                margin: 0 auto;
+            ">
+        <p style="
+                    margin-top: 1.25rem;
+                    font-size: 16px;
+                    line-height: 1.5;
+                ">
+                Dear, {name}!<br />Please enter the following OTP to verify your account on MMCOE Alumni Portal.
+        </p>
+        <h1 style="margin-top: 2.5rem; color: #f21919;">OTP: {otp}</h1>
+        <div class="social-icons" style" margin-top: 2.5rem; margin-left: 1.25rem; ">
+            <a href=" https://github.com/Club-of-Developers-and-Engineers" target="_blank" style="
+                    display: inline-block;
+                    margin-right: 1.25rem;
+                    transition: 0.2s;
+                ">
+            <img src="https://cdn4.iconfinder.com/data/icons/iconsimple-logotypes/512/github-256.png" alt="GitHub"
+                style="
+                    height: 2rem;
+                    width: 2rem;
+                ">
+            </a>
+            <a href="https://huggingface.co/code-mmcoe" target="_blank" style="
+                    display: inline-block;
+                    margin-right: 1.25rem;
+                    transition: 0.2s;
+                ">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFIM-wwuz30Pnb1FYJ2OYpxuq5KZcAPNIekUVFBhraEA&s"
+                    alt="Hugging Face" style="
+                    height: 2rem;
+                    width: 2rem;
+                ">
+            </a>
+            <a href="https://www.instagram.com/code_mmcoe" target="_blank" style="
+                    display: inline-block;
+                    margin-right: 1.25rem;
+                    transition: 0.2s;
+                ">
+                <img src="https://cdn4.iconfinder.com/data/icons/social-media-icons-the-circle-set/48/instagram_circle-512.png"
+                    alt="Instagram" style="
+                    height: 2rem;
+                    width: 2rem;
+                ">
+            </a>
+            <a href="https://www.linkedin.com/company/75646530/" target="_blank" style="
+                    display: inline-block;
+                    margin-right: 1.25rem;
+                    transition: 0.2s;
+                ">
+                <img src="https://cdn4.iconfinder.com/data/icons/social-media-icons-the-circle-set/48/linkedin_circle-512.png"
+                    alt="LinkedIn" style="
+                    height: 2rem;
+                    width: 2rem;
+                ">
+            </a>
+        </div>
+    </div>
+
+</body>
+</body>
+
+</html>
+    """
+    send_email.delay(kwargs['receiver'], subject, message)
+
+
+def send_welcome_email(name, receiver, *args, **kwargs):
     subject = "Welcome to MMCOE Alumni Portal"
     message = f"""
     <!DOCTYPE html>
@@ -291,7 +376,7 @@ def send_welcome_email(name, *args, **kwargs):
 
 </html>
     """
-    send_email.delay(kwargs['receiver'], subject, message)
+    send_email.delay(receiver, subject, message)
 
 
 def send_opportunity_application_email(name, receiver, opportunityName, companyName):

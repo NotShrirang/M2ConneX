@@ -18,6 +18,8 @@ class BlogSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "content",
+            'keywords',
+            "image",
             "author",
             "authorFirstName",
             "authorLastName",
@@ -46,13 +48,13 @@ class BlogSerializer(serializers.ModelSerializer):
         return obj.comments.count()
 
     def get_authorFirstName(self, obj):
-        return obj.author.user.firstName
+        return obj.author.firstName
 
     def get_authorLastName(self, obj):
-        return obj.author.user.lastName
+        return obj.author.lastName
 
     def get_authorEmail(self, obj):
-        return obj.author.user.email
+        return obj.author.email
 
     def get_authorProfilePicture(self, obj):
         return obj.author.profilePicture
@@ -79,13 +81,13 @@ class BlogCommentSerializer(serializers.ModelSerializer):
         ]
 
     def get_userFirstName(self, obj):
-        return obj.user.user.firstName
+        return obj.user.firstName
 
     def get_userLastName(self, obj):
-        return obj.user.user.lastName
+        return obj.user.lastName
 
     def get_userEmail(self, obj):
-        return obj.user.user.email
+        return obj.user.email
 
     def get_userProfilePicture(self, obj):
         return obj.user.profilePicture
@@ -112,13 +114,13 @@ class BlogActionSerializer(serializers.ModelSerializer):
         ]
 
     def get_userFirstName(self, obj):
-        return obj.user.user.firstName
+        return obj.user.firstName
 
     def get_userLastName(self, obj):
-        return obj.user.user.lastName
+        return obj.user.lastName
 
     def get_userEmail(self, obj):
-        return obj.user.user.email
+        return obj.user.email
 
     def get_userProfilePicture(self, obj):
         return obj.user.profilePicture

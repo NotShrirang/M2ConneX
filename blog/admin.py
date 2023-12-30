@@ -11,6 +11,8 @@ class BlogAdmin(admin.ModelAdmin):
         'title',
         'content',
         'author',
+        'keywords',
+        'image',
         'isPublic',
         'isDrafted',
         'createdAt',
