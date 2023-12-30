@@ -390,6 +390,10 @@ class FeedActionDislikeView(views.APIView):
 
     def post(self, request, *args, **kwargs):
         current_user = request.user
+        if not current_user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not current_user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         feedId = request.data.get('feed', None)
         if feedId is None:
             return Response({'message': 'feedAction is required'}, status=status.HTTP_400_BAD_REQUEST)

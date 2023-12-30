@@ -35,12 +35,12 @@ class BlogCommentAdmin(admin.ModelAdmin):
         'id',
         'comment',
         'user',
-        'blog',
+        'action',
         'createdAt',
         'updatedAt',
         'isActive',
     )
-    list_filter = ('createdAt', 'updatedAt', 'isActive', 'user', 'blog')
+    list_filter = ('createdAt', 'updatedAt', 'isActive', 'user', 'action')
 
 
 @admin.register(BlogAction)

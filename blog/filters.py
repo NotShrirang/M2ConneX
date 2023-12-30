@@ -21,7 +21,7 @@ class BlogCommentFilter(CODEDateFilter):
             'createdAt',
             'updatedAt',
             'user',
-            'blog'
+            'action'
         )
 
 

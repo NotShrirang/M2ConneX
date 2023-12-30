@@ -3,14 +3,13 @@ from .models import Blog, BlogComment, BlogAction
 
 
 class BlogSerializer(serializers.ModelSerializer):
-    blogLikeCount = serializers.SerializerMethodField()
-    blogDislikeCount = serializers.SerializerMethodField()
-    blogReportCount = serializers.SerializerMethodField()
-    blogCommentCount = serializers.SerializerMethodField()
     authorFirstName = serializers.SerializerMethodField()
     authorLastName = serializers.SerializerMethodField()
     authorEmail = serializers.SerializerMethodField()
     authorProfilePicture = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
+    isLiked = serializers.SerializerMethodField()
 
     class Meta:
         model = Blog
@@ -25,27 +24,14 @@ class BlogSerializer(serializers.ModelSerializer):
             "authorLastName",
             "authorEmail",
             "authorProfilePicture",
-            "blogLikeCount",
-            "blogDislikeCount",
-            "blogReportCount",
-            "blogCommentCount",
             "isPublic",
             "isDrafted",
+            "likes",
+            "comments",
+            "isLiked",
             "createdAt",
             "updatedAt",
         ]
-
-    def get_blogLikeCount(self, obj):
-        return obj.actions.filter(action="like").count()
-
-    def get_blogDislikeCount(self, obj):
-        return obj.actions.filter(action="dislike").count()
-
-    def get_blogReportCount(self, obj):
-        return obj.actions.filter(action="report").count()
-
-    def get_blogCommentCount(self, obj):
-        return obj.comments.count()
 
     def get_authorFirstName(self, obj):
         return obj.author.firstName
@@ -59,23 +45,43 @@ class BlogSerializer(serializers.ModelSerializer):
     def get_authorProfilePicture(self, obj):
         return obj.author.profilePicture
 
+    def get_likes(self, obj):
+        likes = BlogAction.objects.filter(action="like", blog=obj)
+        return BlogActionSerializer(likes, many=True).data
 
-class BlogCommentSerializer(serializers.ModelSerializer):
+    def get_comments(self, obj):
+        comments = BlogComment.objects.filter(
+            action__blog=obj).order_by('-createdAt')
+        return BlogCommentSerializer(comments, many=True).data
+
+    def get_isLiked(self, obj):
+        try:
+            BlogAction.objects.get(
+                action="like", blog=obj, user=self.context['request'].user)
+            return True
+        except BlogAction.DoesNotExist:
+            return False
+
+
+class BlogActionSerializer(serializers.ModelSerializer):
     userFirstName = serializers.SerializerMethodField()
     userLastName = serializers.SerializerMethodField()
     userEmail = serializers.SerializerMethodField()
     userProfilePicture = serializers.SerializerMethodField()
+    comment = serializers.SerializerMethodField()
 
     class Meta:
-        model = BlogComment
+        model = BlogAction
         fields = [
             "id",
-            "comment",
+            "blog",
+            "action",
             "user",
             "userFirstName",
             "userLastName",
             "userEmail",
             "userProfilePicture",
+            "comment",
             "createdAt",
             "updatedAt",
         ]
@@ -92,18 +98,25 @@ class BlogCommentSerializer(serializers.ModelSerializer):
     def get_userProfilePicture(self, obj):
         return obj.user.profilePicture
 
+    def get_comment(self, obj):
+        try:
+            return obj.comments.first().comment
+        except AttributeError:
+            return None
 
-class BlogActionSerializer(serializers.ModelSerializer):
+
+class BlogCommentSerializer(serializers.ModelSerializer):
     userFirstName = serializers.SerializerMethodField()
     userLastName = serializers.SerializerMethodField()
     userEmail = serializers.SerializerMethodField()
     userProfilePicture = serializers.SerializerMethodField()
 
     class Meta:
-        model = BlogAction
+        model = BlogComment
         fields = [
             "id",
             "action",
+            "comment",
             "user",
             "userFirstName",
             "userLastName",

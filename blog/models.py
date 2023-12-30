@@ -30,32 +30,12 @@ class Blog(CODEBaseModel):
         managed = True
 
 
-class BlogComment(CODEBaseModel):
-    comment = models.TextField(verbose_name=_("Content"),
-                               null=False, db_column="content")
-    user = models.ForeignKey(verbose_name=_("User"),
-                             to=AlumniPortalUser, on_delete=models.CASCADE, db_column="author_id", related_name="user_blog_comments")
-    blog = models.ForeignKey(verbose_name=_("Blog"),
-                             to=Blog, on_delete=models.CASCADE, db_column="blog_id", related_name="comments")
-
-    def __str__(self):
-        try:
-            return self.comment[:20]
-        except IndexError:
-            return self.comment
-
-    class Meta:
-        db_table = "blog_comment"
-        verbose_name = _("Blog Comment")
-        verbose_name_plural = _("Blog Comments")
-        managed = True
-
-
 class BlogAction(CODEBaseModel):
 
     ACTION_CHOICES = (
         ('like', 'like'),
         ('dislike', 'dislike'),
+        ('comment', 'comment'),
         ('report', 'report'),
     )
 
@@ -73,4 +53,25 @@ class BlogAction(CODEBaseModel):
         db_table = "blog_action"
         verbose_name = _("Blog Action")
         verbose_name_plural = _("Blog Actions")
+        managed = True
+
+
+class BlogComment(CODEBaseModel):
+    comment = models.TextField(verbose_name=_("Content"),
+                               null=False, db_column="content")
+    user = models.ForeignKey(verbose_name=_("User"),
+                             to=AlumniPortalUser, on_delete=models.CASCADE, db_column="author_id", related_name="user_blog_comments")
+    action = models.ForeignKey(verbose_name=_("action"),
+                               to=BlogAction, on_delete=models.CASCADE, db_column="blog_action_id", related_name="comments")
+
+    def __str__(self):
+        try:
+            return self.comment[:20]
+        except IndexError:
+            return self.comment
+
+    class Meta:
+        db_table = "blog_comment"
+        verbose_name = _("Blog Comment")
+        verbose_name_plural = _("Blog Comments")
         managed = True

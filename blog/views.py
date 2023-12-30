@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import generics, status, filters
+from rest_framework import generics, status, filters, views
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -111,13 +111,60 @@ class BlogActionView(ModelViewSet):
         if not current_user.isVerified:
             return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
+        if 'blog' not in data:
+            return Response({'message': 'Blog is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if 'action' not in data:
+            return Response({'message': 'Action is required'}, status=status.HTTP_400_BAD_REQUEST)
         data['user'] = current_user.id
         serializer = BlogActionSerializer(data=data)
         if serializer.is_valid():
+            if data['action'] == 'comment':
+                if 'comment' not in data:
+                    return Response({'message': 'Comment is required'}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            final_data = serializer.data
+            if data['action'] == 'comment':
+                comment_data = {
+                    'comment': data['comment'],
+                    'user': current_user.id,
+                    'action': serializer.data['id']
+                }
+                comment_serializer = BlogCommentSerializer(data=comment_data)
+                if comment_serializer.is_valid():
+                    comment_serializer.save()
+                    final_data['comment'] = comment_serializer.data
+                else:
+                    actionId = serializer.data['id']
+                    BlogAction.objects.get(id=actionId).delete()
+                    return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(final_data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BlogDislikeView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not current_user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+        data = request.data
+        if 'blog' not in data:
+            return Response({'message': 'Blog is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            blog = Blog.objects.get(id=data['blog'])
+        except Blog.DoesNotExist:
+            return Response({'message': 'Blog does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        action = BlogAction.objects.filter(
+            action='like', user=current_user, blog=blog)
+        if action.exists():
+            action.delete()
+            return Response({'message': 'Blog like removed'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Blog is not liked'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RecommendBlogView(generics.ListAPIView):
