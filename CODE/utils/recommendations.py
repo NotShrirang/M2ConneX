@@ -1,5 +1,6 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import random
 
 
 def get_feed_recommendation(qs, user):
@@ -157,17 +158,22 @@ def get_user_recommendation(qs, current_user):
     similarity_score = cosine_similarity(
         current_user_attributes_vector, user_attributes_vector)
 
+    # Add a small random noise to the similarity scores
+    noise = [random.uniform(-0.05, 0.05) for _ in range(len(similarity_score))]
+    similarity_score_with_noise = [s + n for s,
+                                   n in zip(similarity_score[0], noise)]
+
     # Get indices of user objects
     user_indices = [i for i in range(len(user_objects))]
 
-    # Get indices of user objects in descending order of similarity score
+    # Get indices of user objects in descending order of similarity score with noise
     user_indices = [x for _, x in sorted(
-        zip(similarity_score[0], user_indices), reverse=True)]
+        zip(similarity_score_with_noise, user_indices), reverse=True)]
 
     # Get similarity score in descending order
-    similarity_score = sorted(similarity_score[0], reverse=True)
+    similarity_score = sorted(similarity_score_with_noise, reverse=True)
 
-    # Get user objects in descending order of similarity score
+    # Get user objects in descending order of similarity score with noise
     user_objects = [user_objects[i] for i in user_indices]
 
     return user_objects, similarity_score
