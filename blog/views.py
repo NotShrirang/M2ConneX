@@ -50,6 +50,21 @@ class BlogView(ModelViewSet):
         serializer = BlogSerializer(qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def create(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.is_active:
+            return Response({'message': 'User is not active'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not current_user.isVerified:
+            return Response({'message': 'User is not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+        data = request.data
+        data['author'] = current_user.id
+        serializer = BlogSerializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class BlogCommentView(ModelViewSet):
     serializer_class = BlogCommentSerializer
