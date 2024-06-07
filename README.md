@@ -1,17 +1,17 @@
-# Alumni Portal for MMCOE
+# M2ConneX
 
 
-![GitHub stars](https://img.shields.io/github/stars/NotShrirang/alumni-portal-backend?style=social)
-![GitHub forks](https://img.shields.io/github/forks/NotShrirang/alumni-portal-backend?style=social)
-![GitHub issues](https://img.shields.io/github/issues/NotShrirang/alumni-portal-backend)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/NotShrirang/alumni-portal-backend)
-![GitHub](https://img.shields.io/github/license/NotShrirang/alumni-portal-backend)
-![GitHub last commit](https://img.shields.io/github/last-commit/NotShrirang/alumni-portal-backend)
-![GitHub repo size](https://img.shields.io/github/repo-size/NotShrirang/alumni-portal-backend)
+![GitHub stars](https://img.shields.io/github/stars/NotShrirang/M2ConneX?style=social)
+![GitHub forks](https://img.shields.io/github/forks/NotShrirang/M2ConneX?style=social)
+![GitHub issues](https://img.shields.io/github/issues/NotShrirang/M2ConneX)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/NotShrirang/M2ConneX)
+![GitHub](https://img.shields.io/github/license/NotShrirang/M2ConneX)
+![GitHub last commit](https://img.shields.io/github/last-commit/NotShrirang/M2ConneX)
+![GitHub repo size](https://img.shields.io/github/repo-size/NotShrirang/M2ConneX)
 
 ## Overview
 
-Alumni Portal for MMCOE is a comprehensive platform designed to connect alumni of MMCOE (Marathwada Mitra Mandal's College of Engineering) and facilitate communication, networking, and collaboration among them. The portal offers various features and functionalities tailored to the needs of alumni, including event management, skill sharing, job opportunities, and more. Alumni can also receive recommendations for connections, posts, and job opportunities based on their skills and experience. Built with modern web technologies and powered by Django, this portal provides a seamless and user-friendly experience for MMCOE alumni to stay connected and engaged with their alma mater.
+M2ConneX is a comprehensive platform designed to connect alumni of MMCOE (Marathwada Mitra Mandal's College of Engineering) and facilitate communication, networking, and collaboration among them. The portal offers various features and functionalities tailored to the needs of alumni, including event management, skill sharing, job opportunities, and more. Alumni can also receive recommendations for connections, posts, and job opportunities based on their skills and experience. Built with modern web technologies and powered by Django, this portal provides a seamless and user-friendly experience for MMCOE alumni to stay connected and engaged with their alma mater.
 
 ## Features
 
