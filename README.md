@@ -13,6 +13,8 @@
 
 M2ConneX is a comprehensive platform designed to connect alumni of MMCOE (Marathwada Mitra Mandal's College of Engineering) and facilitate communication, networking, and collaboration among them. The portal offers various features and functionalities tailored to the needs of alumni, including event management, skill sharing, job opportunities, and more. Alumni can also receive recommendations for connections, posts, and job opportunities based on their skills and experience. Built with modern web technologies and powered by Django, this portal provides a seamless and user-friendly experience for MMCOE alumni to stay connected and engaged with their alma mater.
 
+#### Frontend - https://github.com/NotShrirang/M2ConneX-frontend
+
 ## Features
 
 - **Social Media**: Post and share your life updates with your college.
