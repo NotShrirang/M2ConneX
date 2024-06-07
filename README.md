@@ -26,6 +26,19 @@ M2ConneX is a comprehensive platform designed to connect alumni of MMCOE (Marath
 
 ## Getting Started
 
+### Prerequisites
+
+Ensure you have Docker Desktop installed.
+
+### Installation
+
+1. Clone the repository:
+
+```sh
+git clone https://github.com/NotShrirang/M2ConneX-frontend.git
+cd M2ConneX
+```
+
 ### Database Configuration (PostgreSQL)
 
 Create a `.env` file in the root directory with the following configurations:
