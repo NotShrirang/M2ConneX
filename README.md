@@ -27,6 +27,10 @@ This is backend developed for the platform.
 - **Community Engagement**: Engage in discussions, forums, and special interest groups within the MMCOE alumni community.
 - **Personal Profiles**: Create and customize personal profiles showcasing professional achievements, education, and interests.
 
+## Architecture
+(Click on the image to zoom)
+![m2connex](https://github.com/user-attachments/assets/591dc730-0963-4e9b-8211-d9d555fedcf0)
+
 ## Getting Started
 
 ### Prerequisites
