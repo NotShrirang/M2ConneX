@@ -190,34 +190,61 @@ class FAISSRecommendationEngine:
         if not force_refresh and user_id_str in self.user_id_to_faiss_id:
             faiss_id = self.user_id_to_faiss_id[user_id_str]
             try:
+                # Try to reconstruct existing embedding
                 embedding = self.index.reconstruct(faiss_id)
                 return embedding
             except:
-                pass
-        
+                # If reconstruction fails, remove from mappings and regenerate
+                logger.warning(f"Failed to reconstruct embedding for user {user_id_str}, regenerating...")
+                del self.user_id_to_faiss_id[user_id_str]
+                if faiss_id in self.faiss_id_to_user_id:
+                    del self.faiss_id_to_user_id[faiss_id]
+
         # Generate new embedding
         user_text = self.create_user_text_representation(user)
         embedding = self.model.encode(user_text, convert_to_numpy=True)
         embedding = embedding / np.linalg.norm(embedding)  # Normalize
-        
-        # Add to FAISS
+
+        # Add to FAISS with proper locking
         with self.index_lock:
-            if user_id_str in self.user_id_to_faiss_id:
-                # Update existing
+            if user_id_str in self.user_id_to_faiss_id and not force_refresh:
+                # User was added by another thread, return existing
                 faiss_id = self.user_id_to_faiss_id[user_id_str]
-            else:
-                # Add new
-                faiss_id = self.next_faiss_id
-                self.user_id_to_faiss_id[user_id_str] = faiss_id
-                self.faiss_id_to_user_id[faiss_id] = user_id_str
-                self.next_faiss_id += 1
+                try:
+                    existing_embedding = self.index.reconstruct(faiss_id)
+                    return existing_embedding
+                except:
+                    # Continue with adding new embedding
+                    pass
             
-            # Add embedding
-            self.index.add_with_ids(
-                embedding.reshape(1, -1).astype('float32'),
-                np.array([faiss_id])
-            )
-        
+            # Assign new unique FAISS ID
+            faiss_id = self.next_faiss_id
+            
+            # Check if this FAISS ID is already in use (safety check)
+            while faiss_id in self.faiss_id_to_user_id:
+                faiss_id += 1
+            
+            # Update mappings
+            self.user_id_to_faiss_id[user_id_str] = faiss_id
+            self.faiss_id_to_user_id[faiss_id] = user_id_str
+            self.next_faiss_id = faiss_id + 1
+            
+            try:
+                # Add embedding to FAISS index
+                self.index.add_with_ids(
+                    embedding.reshape(1, -1).astype('float32'),
+                    np.array([faiss_id], dtype=np.int64)
+                )
+                logger.debug(f"Added user {user_id_str} with FAISS ID {faiss_id}")
+            except Exception as e:
+                # If adding fails, clean up mappings
+                logger.error(f"Failed to add user {user_id_str} to FAISS index: {e}")
+                if user_id_str in self.user_id_to_faiss_id:
+                    del self.user_id_to_faiss_id[user_id_str]
+                if faiss_id in self.faiss_id_to_user_id:
+                    del self.faiss_id_to_user_id[faiss_id]
+                raise
+
         return embedding
     
     def get_shown_posts(self, user_id):
