@@ -48,3 +48,10 @@ urllib3==1.26.18
 celery==5.2.7
 flower==1.2.0
 redis==4.4.0
+# AI/ML Libraries
+faiss-cpu==1.7.4
+sentence-transformers==2.2.2
+torch==2.1.0
+transformers==4.35.0
+# Additional dependencies that might be needed
+faker==19.12.0
