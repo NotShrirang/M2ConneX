@@ -47,26 +47,6 @@ This is the backend API developed for the platform.
 
 ## Architecture
 
-### Authentication System
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│   Frontend      │    │   Django API     │    │   Firebase Admin    │
-│                 │    │                  │    │                     │
-│ Firebase SDK    │───▶│ Firebase Auth    │───▶│ Token Verification  │
-│ ID Token        │    │ Middleware       │    │ User Management     │
-│                 │    │                  │    │                     │
-└─────────────────┘    └──────────────────┘    └─────────────────────┘
-                              │
-                              ▼
-                       ┌──────────────────┐
-                       │   PostgreSQL     │
-                       │                  │
-                       │ User Profiles    │
-                       │ App Data         │
-                       │ NO Passwords     │
-                       └──────────────────┘
-```
-
 ### AI/ML Technology Stack
 
 - **FAISS**: Vector similarity search for real-time recommendations
