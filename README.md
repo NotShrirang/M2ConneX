@@ -1,4 +1,4 @@
-# M2ConneX - AI-Powered Alumni Portal
+# M2ConneX - AI-Powered Alumni Portal with Firebase SSO
 
 ![GitHub stars](https://img.shields.io/github/stars/NotShrirang/M2ConneX?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/NotShrirang/M2ConneX?style=social)
@@ -12,7 +12,14 @@
 
 ## Overview
 
-M2ConneX is a comprehensive AI-powered platform designed to connect alumni of MMCOE (Marathwada Mitra Mandal's College of Engineering) and facilitate intelligent networking, collaboration, and content discovery. The portal features advanced machine learning-based recommendation systems that provide personalized content, connection suggestions, and smart job matching.
+M2ConneX is a comprehensive AI-powered platform designed to connect alumni of MMCOE (Marathwada Mitra Mandal's College of Engineering) and facilitate intelligent networking, collaboration, and content discovery. The platform features advanced machine learning-based recommendation systems, **secure Firebase SSO authentication**, and seamless user experience.
+
+**🔐 Authentication Features:**
+- **Firebase Single Sign-On (SSO)** - Secure, Google-grade authentication
+- **Dual Authentication Support** - Both Firebase and legacy JWT authentication
+- **Zero Downtime Migration** - Seamless transition from JWT to Firebase
+- **Auto-Verification** - Firebase users are automatically verified
+- **No Password Storage** - Enhanced security with Firebase handling all authentication
 
 **🤖 AI-Powered Features:**
 - **Semantic Content Recommendations**: Uses FAISS + Sentence Transformers for intelligent feed curation
@@ -26,6 +33,7 @@ This is the backend API developed for the platform.
 
 ## Features
 
+- **🔥 Firebase SSO Authentication**: Secure, seamless login with Google-grade security
 - **🎯 AI-Powered Recommendations**: Personalized content using FAISS vector similarity search
 - **🔍 Semantic Search**: Advanced embedding-based content discovery
 - **👥 Smart Networking**: ML-driven connection suggestions based on profile similarity
@@ -39,9 +47,27 @@ This is the backend API developed for the platform.
 
 ## Architecture
 
-![m2connex](https://github.com/user-attachments/assets/591dc730-0963-4e9b-8211-d9d555fedcf0)
+### Authentication System
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│   Frontend      │    │   Django API     │    │   Firebase Admin    │
+│                 │    │                  │    │                     │
+│ Firebase SDK    │───▶│ Firebase Auth    │───▶│ Token Verification  │
+│ ID Token        │    │ Middleware       │    │ User Management     │
+│                 │    │                  │    │                     │
+└─────────────────┘    └──────────────────┘    └─────────────────────┘
+                              │
+                              ▼
+                       ┌──────────────────┐
+                       │   PostgreSQL     │
+                       │                  │
+                       │ User Profiles    │
+                       │ App Data         │
+                       │ NO Passwords     │
+                       └──────────────────┘
+```
 
-## AI/ML Technology Stack
+### AI/ML Technology Stack
 
 - **FAISS**: Vector similarity search for real-time recommendations
 - **Sentence Transformers**: Semantic embedding generation (`all-MiniLM-L6-v2`)
@@ -50,6 +76,7 @@ This is the backend API developed for the platform.
 - **PyTorch**: Deep learning framework
 - **scikit-learn**: Traditional ML algorithms
 - **NumPy**: Numerical computing
+- **Firebase Admin SDK**: Server-side authentication and user management
 
 ## Getting Started
 
@@ -57,7 +84,26 @@ This is the backend API developed for the platform.
 
 - Docker Desktop
 - 8GB+ RAM (recommended for ML models)
+- **Firebase Project** with Authentication enabled
 - Python 3.9+ (for local development)
+
+### Firebase Setup
+
+1. **Create Firebase Project**:
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create new project or select existing
+   - Enable **Authentication** service
+   - Enable **Email/Password** provider in Sign-in methods
+
+2. **Get Service Account**:
+   - Go to **Project Settings** → **Service Accounts**
+   - Click **"Generate new private key"**
+   - Download JSON file as `firebase-service-account.json`
+   - Place in project root directory
+
+3. **Get Web API Key**:
+   - Go to **Project Settings** → **General**
+   - Copy the **Web API Key** for frontend integration
 
 ### Installation
 
@@ -78,7 +124,7 @@ DB_PASS=postgres
 DB_HOST=alumni-portal-db
 DB_PORT=5432
 
-# Email Configuration
+# Email Configuration (Optional - for legacy features)
 EMAIL=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password
 
@@ -89,8 +135,20 @@ HF_HOME=/tmp/huggingface
 TORCH_HOME=/tmp/torch
 TOKENIZERS_PARALLELISM=false
 
+# Firebase Configuration (automatically detected from service account file)
+# Place firebase-service-account.json in project root
+
 # Optional: Hugging Face API Token for enhanced features
 HUGGINGFACE_API_TOKEN=your_hf_api_token
+```
+
+3. **Place Firebase Credentials:**
+```bash
+# Your project structure should look like:
+├── firebase-service-account.json  ← Your Firebase credentials
+├── docker-compose-dev.yml
+├── manage.py
+└── ... other files
 ```
 
 ### Quick Start with Docker
@@ -113,151 +171,147 @@ docker exec -it alumni-portal-backend python manage.py migrate
 docker exec -it alumni-portal-backend python manage.py populate_db --users 50 --posts 100 --opportunities 30
 ```
 
-#### 3. Build AI Recommendation Index
+#### 3. Verify Firebase Integration
+```bash
+# Test Firebase initialization
+docker exec -it alumni-portal-backend python -c "
+from firebase_config import initialize_firebase
+initialize_firebase()
+print('✅ Firebase is ready!')
+"
+```
+
+#### 4. Build AI Recommendation Index
 ```bash
 # Build FAISS index for personalized recommendations
 docker exec -it alumni-portal-backend python manage.py build_faiss_index --rebuild
 ```
 
-#### 4. Create Admin User
+## Authentication System
+
+### Firebase SSO Endpoints
+
+#### Register New User
 ```bash
-docker exec -it alumni-portal-backend python manage.py shell
-```
-```python
-from users.models import AlumniPortalUser, SuperAdmin
-from csc.models import City
+POST /users/firebase/register/
+Content-Type: application/json
 
-city = City.objects.first()
-user = AlumniPortalUser.objects.create_user(
-    email='admin@mmcoe.edu.in',
-    password='admin123',
-    firstName='Admin',
-    lastName='User',
-    department='1',
-    privilege='Super Admin',
-    city=city,
-    isVerified=True,
-    is_active=True,
-    is_superuser=True,
-    is_staff=True
-)
-SuperAdmin.objects.create(user=user)
-print("Admin created: admin@mmcoe.edu.in / admin123")
-exit()
+{
+  "idToken": "firebase-id-token-from-frontend",
+  "privilege": "Alumni|Student|Staff|Super Admin",
+  "department": "1",
+  "batch": "2024",
+  "enrollmentYear": "2020-01-01", 
+  "passingOutYear": "2024-01-01",
+  "city": "Pune",
+  "phoneNumber": "+919876543210",
+  "bio": "Software Engineer"
+}
 ```
 
-### Manual Setup (Alternative)
-
-1. **Install dependencies:**
+#### Login User
 ```bash
-pip install -r requirements.txt
+POST /users/firebase/login/
+Content-Type: application/json
+
+{
+  "idToken": "firebase-id-token-from-frontend"
+}
 ```
 
-2. **Set environment variables:**
+#### Access Protected Endpoints
 ```bash
-export TRANSFORMERS_CACHE=/tmp/transformers_cache
-export HF_HOME=/tmp/huggingface
-export TORCH_HOME=/tmp/torch
-export TOKENIZERS_PARALLELISM=false
+GET /users/
+Authorization: Bearer firebase-id-token
 ```
 
-3. **Run migrations and start server:**
-```bash
-python manage.py migrate
-python manage.py runserver
-```
-
-## AI Recommendation System Setup
-
-### Understanding the Recommendation Engine
-
-The M2ConneX recommendation system uses a sophisticated FAISS-based approach:
-
-1. **User Embeddings**: Creates semantic representations of users based on:
-   - Profile information (bio, department, skills)
-   - Activity patterns (posts, likes, comments)
-   - Professional experience
-   - Connection network
-
-2. **Content Analysis**: Analyzes posts and content using:
-   - Semantic similarity matching
-   - User interaction history
-   - Connection-based filtering
-
-3. **Real-time Recommendations**: Provides instant suggestions for:
-   - Personalized feed content
-   - User connections
-   - Job opportunities
-   - Event recommendations
-
-### Building the Recommendation Index
+### Legacy JWT Endpoints (Still Supported)
 
 ```bash
-# Full rebuild (recommended after major data changes)
-docker exec -it alumni-portal-backend python manage.py build_faiss_index --rebuild
-
-# Incremental update (for new users)
-docker exec -it alumni-portal-backend python manage.py build_faiss_index
+# Legacy authentication (backwards compatible)
+POST /users/login/
+POST /users/register/
+POST /users/logout/
+POST /users/token/refresh/
 ```
 
-### Testing the Recommendation System
+### Frontend Integration
 
-```bash
-docker exec -it alumni-portal-backend python manage.py shell
+#### Firebase SDK Setup (Frontend)
+```javascript
+// Install: npm install firebase
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+
+const firebaseConfig = {
+  apiKey: "your-web-api-key",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id"
+  // ... other config
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 ```
 
-```python
-# Test the recommendation engine
-from CODE.utils.recommendations import get_recommendation_engine
-from users.models import AlumniPortalUser
+#### Authentication Flow (Frontend)
+```javascript
+// Login
+const login = async (email, password) => {
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  const idToken = await result.user.getIdToken();
+  
+  // Send to your Django backend
+  const response = await fetch('/users/firebase/login/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken })
+  });
+};
 
-engine = get_recommendation_engine()
-users = AlumniPortalUser.objects.filter(is_active=True, isVerified=True)
-print(f"Users in index: {engine.index.ntotal}")
-print(f"Total active users: {users.count()}")
-
-# Test user embedding
-test_user = users.first()
-embedding = engine.get_or_create_user_embedding(test_user)
-print(f"Embedding shape: {embedding.shape}")
-```
-
-### Monitoring Recommendations
-
-Check the recommendation system logs:
-```bash
-# View recommendation engine logs
-docker logs alumni-portal-backend | grep -i "recommendation\|faiss\|embedding"
-
-# Monitor ML model loading
-docker logs alumni-portal-backend | grep -i "transformers\|sentence"
+// API calls with automatic token
+const makeAuthenticatedRequest = async (url, options = {}) => {
+  const user = auth.currentUser;
+  const idToken = await user.getIdToken();
+  
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': `Bearer ${idToken}`
+    }
+  });
+};
 ```
 
 ## API Endpoints
 
 ### Authentication
 ```bash
-# Login
+# Firebase Authentication (Recommended)
+POST /users/firebase/login/
+POST /users/firebase/register/  
+POST /users/firebase/logout/
+
+# Legacy JWT Authentication (Backwards Compatible)
 POST /users/login/
-{
-    "email": "admin@mmcoe.edu.in",
-    "password": "admin123"
-}
+POST /users/register/
+POST /users/logout/
 ```
 
 ### AI-Powered Endpoints
 ```bash
 # Personalized feed recommendations
 GET /feed/recommend-feed/
-Authorization: Bearer <token>
+Authorization: Bearer <firebase-token>
 
 # Smart user connections
 GET /connection/recommend-connection/
-Authorization: Bearer <token>
+Authorization: Bearer <firebase-token>
 
 # Skill-based job matching
 GET /opportunity/recommend-opportunity/?search=python
-Authorization: Bearer <token>
+Authorization: Bearer <firebase-token>
 ```
 
 ### Core Endpoints
@@ -277,6 +331,44 @@ Authorization: Bearer <token>
 - **Database Admin**: http://localhost:5050/ (admin@admin.com / root)
 - **Message Queue**: http://localhost:15672/ (admin / admin)
 - **Task Monitor**: http://localhost:5555/
+
+## Authentication Migration Guide
+
+### For Existing Applications
+
+Your existing JWT-based applications continue to work without any changes. The system now supports **dual authentication**:
+
+**Option 1: Keep using JWT (No changes needed)**
+```javascript
+// Existing JWT flow continues to work
+fetch('/users/login/', {
+  method: 'POST',
+  body: JSON.stringify({ email, password })
+});
+```
+
+**Option 2: Migrate to Firebase SSO (Recommended)**
+```javascript
+// New Firebase flow - more secure and user-friendly
+import { signInWithEmailAndPassword } from 'firebase/auth';
+
+const result = await signInWithEmailAndPassword(auth, email, password);
+const idToken = await result.user.getIdToken();
+
+fetch('/users/firebase/login/', {
+  method: 'POST',
+  body: JSON.stringify({ idToken })
+});
+```
+
+### Migration Benefits
+
+- **Enhanced Security**: Google-grade authentication infrastructure
+- **Better UX**: Seamless login experience
+- **No Password Storage**: Eliminates password-related security risks
+- **Automatic Verification**: Users are verified by default
+- **Scalable**: Firebase handles authentication infrastructure
+- **Modern**: Industry-standard OAuth 2.0 / OpenID Connect
 
 ## Performance Optimization
 
@@ -312,7 +404,23 @@ docker exec -it alumni-portal-backend ls -lh /tmp/user_embeddings.index*
 
 ### Common Issues
 
-1. **Cache Permission Errors**:
+1. **Firebase initialization failed**:
+```bash
+# Check service account file exists
+docker exec -it alumni-portal-backend ls -la firebase-service-account.json
+
+# Verify Firebase credentials
+docker logs alumni-portal-backend | grep -i firebase
+```
+
+2. **"Invalid Firebase token" errors**:
+```bash
+# Tokens expire after 1 hour - get fresh token
+# Check Firebase project configuration matches
+# Ensure Email/Password provider is enabled in Firebase Console
+```
+
+3. **Cache Permission Errors**:
 ```bash
 docker exec -it alumni-portal-backend bash -c "
 mkdir -p /tmp/transformers_cache /tmp/huggingface /tmp/torch
@@ -320,45 +428,49 @@ chmod 777 /tmp/transformers_cache /tmp/huggingface /tmp/torch
 "
 ```
 
-2. **Memory Issues with ML Models**:
+4. **Memory Issues with ML Models**:
 ```bash
 # Restart containers to free memory
 docker-compose -p alumni-portal-dev -f docker-compose-dev.yml restart backend
 ```
 
-3. **FAISS Index Corruption**:
-```bash
-# Rebuild the index
-docker exec -it alumni-portal-backend python manage.py build_faiss_index --rebuild
-```
+### Firebase Debugging
 
-4. **No Recommendations Appearing**:
 ```bash
-# Check if index is built and has data
+# Test Firebase token validation
+curl -X POST http://localhost:8000/users/firebase/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"idToken": "your-firebase-id-token"}'
+
+# Check Firebase service in containers
 docker exec -it alumni-portal-backend python -c "
-from CODE.utils.recommendations import get_recommendation_engine
-engine = get_recommendation_engine()
-print(f'Index size: {engine.index.ntotal}')
+import firebase_admin
+print('Firebase apps:', len(firebase_admin._apps))
 "
 ```
 
-### Performance Monitoring
+## Security Features
 
-```bash
-# Check memory usage
-docker stats alumni-portal-backend
+### Firebase SSO Security Benefits
 
-# Monitor ML model loading
-docker logs alumni-portal-backend --tail 100 | grep -E "(FAISS|embedding|model)"
+- **Google-Grade Security**: Authentication handled by Google's infrastructure
+- **No Password Storage**: Eliminates password-related vulnerabilities
+- **Automatic Token Refresh**: Secure session management
+- **Audit Logging**: Firebase provides comprehensive authentication logs
+- **Rate Limiting**: Built-in protection against brute force attacks
+- **Multi-Factor Authentication**: Easy to enable additional security layers
 
-# Check API response times
-curl -w "@curl-format.txt" -o /dev/null -s "http://localhost:8000/feed/recommend-feed/" -H "Authorization: Bearer <token>"
-```
+### Data Protection
+
+- **JWT + Firebase Support**: Dual authentication for maximum compatibility
+- **Token Validation**: All requests verified against Firebase servers
+- **User Verification**: Automatic email verification through Firebase
+- **Session Security**: Stateless authentication with secure token management
 
 ## Docker Services
 
-- **backend**: Django API server with ML capabilities
-- **db**: PostgreSQL database
+- **backend**: Django API server with ML capabilities and Firebase authentication
+- **db**: PostgreSQL database (no password storage for Firebase users)
 - **redis**: Caching and session management
 - **rabbit-mq**: Celery task queue
 - **celery**: Background task processing
@@ -367,37 +479,46 @@ curl -w "@curl-format.txt" -o /dev/null -s "http://localhost:8000/feed/recommend
 
 ## Development
 
-### Adding New Recommendation Features
+### Adding New Firebase Features
 
-1. **Extend User Representation**:
+1. **Custom Claims Integration**:
 ```python
-# In CODE/utils/recommendations.py
-def create_user_text_representation(self, user):
-    # Add new user attributes for better recommendations
-    components.append(f"New_Feature: {user.new_field}")
+# Add custom claims to Firebase tokens
+from firebase_admin import auth
+
+def set_custom_claims(firebase_uid, claims):
+    auth.set_custom_user_claims(firebase_uid, claims)
 ```
 
-2. **Custom Similarity Metrics**:
+2. **Advanced User Management**:
 ```python
-# Add domain-specific similarity calculations
-def calculate_custom_similarity(self, user1, user2):
-    # Implement custom similarity logic
-    return similarity_score
+# Firebase Admin operations
+from firebase_admin import auth
+
+def disable_user(firebase_uid):
+    auth.update_user(firebase_uid, disabled=True)
 ```
 
-3. **A/B Testing Framework**:
-```python
-# Implement recommendation variants for testing
-def get_recommendation_variant(self, user, variant='default'):
-    # Return different recommendation strategies
+### Testing Firebase Authentication
+
+```bash
+# Create test Firebase user
+curl -X POST "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=YOUR_WEB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "testpass123", "returnSecureToken": true}'
+
+# Test registration
+curl -X POST http://localhost:8000/users/firebase/register/ \
+  -H "Content-Type: application/json" \
+  -d '{"idToken": "firebase-token", "privilege": "Alumni", "department": "1"}'
 ```
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/ai-enhancement`
-3. Commit changes: `git commit -am 'Add new AI feature'`
-4. Push to branch: `git push origin feature/ai-enhancement`
+2. Create a feature branch: `git checkout -b feature/firebase-enhancement`
+3. Commit changes: `git commit -am 'Add Firebase feature'`
+4. Push to branch: `git push origin feature/firebase-enhancement`
 5. Submit a Pull Request
 
 ## License
@@ -410,9 +531,11 @@ For issues and questions:
 - Create an issue on GitHub
 - Check the troubleshooting section
 - Review API documentation at `/swagger/`
+- Firebase Console for authentication issues
 
 ## Acknowledgments
 
+- **Google Firebase** for secure authentication infrastructure
 - **Hugging Face** for pre-trained models and inference API
 - **FAISS** for efficient similarity search
 - **Sentence Transformers** for semantic embeddings
@@ -420,4 +543,10 @@ For issues and questions:
 
 ---
 
-**🚀 Your AI-powered alumni portal is ready!** The recommendation system will improve over time as users interact with the platform.
+**🚀 Your AI-powered alumni portal with Firebase SSO is ready!**
+
+**🔐 Authentication**: Firebase SSO + Legacy JWT Support  
+**🤖 AI Features**: FAISS + Transformers + Smart Recommendations  
+**🚢 Production Ready**: Docker + PostgreSQL + Redis + Celery  
+
+**Choose your authentication method and start building amazing alumni connections!** 🌟
